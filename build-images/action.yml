@@ -1,0 +1,25 @@
+name: "Build Armbian images"
+description: ""
+inputs:
+  choice:
+    description: Build targets
+    required: true
+  runner:
+    description: Build runners for CLI
+    required: true
+  sourcerepo:
+    description: Source repository
+    required: true
+  packagesrepo:
+    description: Beta packages repository
+    required: true
+  advanced:
+    description: 'Single board (grep -w tinkerboard |)'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: "Build images"
+      id: build-images
+      run: |
+        echo "Test"
