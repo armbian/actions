@@ -5,10 +5,10 @@
     id: build-images
     uses: armbian/actions/build-images@main
     with:
-        choice: ""
-        runner: ""
-        sourcerepo: ""
-        packagesrepo: ""
-        advanced: ""
+        choice: "beta|stable|rc"
+        runner: "ubuntu-latest|small|big"
+        sourcerepo: "nightly"
+        packagesrepo: "*yes*|no"
+        advanced: "grep -w tinkerboard |"
         
 ```
