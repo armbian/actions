@@ -22,7 +22,7 @@ runs:
     - name: "Build images"
       id: build-images
       run: |
-        echo "Test"
+        echo ${{ inputs.choice }}
       shell: bash
 
 cli1:
