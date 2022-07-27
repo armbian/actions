@@ -27,12 +27,13 @@ runs:
               for l in ${de[@]}
               do
                 if [[ $l == cli ]]; then         
-                l="       "
+                l="cli     "
                 m=""
-                else 
+                else
+                l="desktop"
                 m="3dsupport,browsers,chat,desktop_tools,editors,email,internet,multimedia,office,programming,remote_desktop"
                 fi
-              echo "$j    $i    $k    $l    $m" >> targets.txt
+              echo "$j    $i    $k    $l  stable  yes $m" >> targets.txt
               echo "$j" >> boards.txt
              done
             done
