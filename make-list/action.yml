@@ -20,12 +20,12 @@ runs:
             do
               for l in ${de[@]}
               do
-	            if [[ $l == cli ]]; then
+                if [[ $l == cli ]]; then         
                 l="       "
-		            m=""
-		          else
-		            m="3dsupport,browsers,chat,desktop_tools,editors,email,internet,multimedia,office,programming,remote_desktop"
-	            fi
+                m=""
+                else 
+                m="3dsupport,browsers,chat,desktop_tools,editors,email,internet,multimedia,office,programming,remote_desktop"
+                fi
               echo "$j    $i    $k    $l    $m"
               done
             done
