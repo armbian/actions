@@ -31,7 +31,7 @@ runs:
                 m=""
                 else
                 l="desktop"
-                m="config_base  dsupport,browsers,chat,desktop_tools,editors,email,internet,multimedia,office,programming,remote_desktop"
+                m="    config_base  support,browsers,chat,desktop_tools,editors,email,internet,multimedia,office,programming,remote_desktop"
                 fi
               echo "$j    $i    $k    $l  stable  yes $m" >> targets.txt
               echo "$j" >> boards.txt
