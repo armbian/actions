@@ -14,16 +14,17 @@ runs:
         truncate targets.txt --size=0
         truncate boards.txt --size=0
         string=($(find build/config/boards/ -mindepth 1 -maxdepth 1 -type f -name "*.${{ inputs.type }}" 2> /dev/null | sort | cut -d"/" -f4 | cut -d"." -f1))
-        branch=("current")
         release=("jammy" "sid")
         de=("cli" "xfce")
-        m="3dsupport,browsers,chat,desktop_tools,editors,email,internet,multimedia,office,programming,remote_desktop"
         for j in ${string[@]}
         do
           for k in ${release[@]}
           do
-            for i in ${branch[@]}
-            do
+            branch="current"
+            KERNEL=$(cat build/config/boards/$j.csc | grep KERNEL_TARGET)
+            if [[ -z "$(echo $KERNEL | grep $branch)" ]]; then
+                branch=$(echo "$KERNEL" | sed 's/"//g' | cut -d"=" -f2)
+            fi
               for l in ${de[@]}
               do
                 if [[ $l == cli ]]; then         
@@ -33,9 +34,7 @@ runs:
                 l="desktop"
                 m=" xfce config_base 3dsupport,browsers,chat,desktop_tools,editors,email,internet,multimedia,office,programming,remote_desktop"
                 fi
-              echo "$j    $i    $k    $l  stable  yes $m" >> targets.txt
               echo "$j" >> boards.txt
-             done
             done
           done
         done
