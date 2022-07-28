@@ -15,15 +15,21 @@ runs:
         truncate boards.txt --size=0
         string=($(find build/config/boards/ -mindepth 1 -maxdepth 1 -type f -name "*.${{ inputs.type }}" 2> /dev/null | sort | cut -d"/" -f4 | cut -d"." -f1))
         release=("jammy" "sid")
-        de=("cli" "xfce")
+       
         for j in ${string[@]}
         do
           for k in ${release[@]}
           do
             branch="current"
             KERNEL=$(cat build/config/boards/$j.${{ inputs.type }} | grep KERNEL_TARGET)
+            DESKTOP=$(cat config/boards/$j.csc | grep BUILD_DESKTOP)
             if [[ -z "$(echo $KERNEL | grep $branch)" ]]; then
                 branch=$(echo "$KERNEL" | sed 's/"//g' | cut -d"=" -f2)
+            fi
+            if [[ -n "$(echo $DESKTOP | grep no)" ]]; then
+            de=("cli")
+            else
+            de=("cli" "xfce")
             fi
               for l in ${de[@]}
               do
