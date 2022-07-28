@@ -21,7 +21,7 @@ runs:
           for k in ${release[@]}
           do
             branch="current"
-            KERNEL=$(cat build/config/boards/$j.csc | grep KERNEL_TARGET)
+            KERNEL=$(cat build/config/boards/$j.${{ inputs.type }} | grep KERNEL_TARGET)
             if [[ -z "$(echo $KERNEL | grep $branch)" ]]; then
                 branch=$(echo "$KERNEL" | sed 's/"//g' | cut -d"=" -f2)
             fi
