@@ -22,7 +22,7 @@ runs:
           do
             branch="current"
             KERNEL=$(cat build/config/boards/$j.${{ inputs.type }} | grep KERNEL_TARGET)
-            DESKTOP=$(cat config/boards/$j.csc | grep BUILD_DESKTOP)
+            DESKTOP=$(cat build/config/boards/$j.csc | grep BUILD_DESKTOP)
             if [[ -z "$(echo $KERNEL | grep $branch)" ]]; then
                 branch=$(echo "$KERNEL" | sed 's/"//g' | cut -d"=" -f2)
             fi
