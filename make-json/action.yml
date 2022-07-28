@@ -1,0 +1,18 @@
+name: "Make JSON from releases"
+description: ""
+runs:
+  using: "composite"
+  steps:
+    - name: "Make JSON"
+      id: make-json
+      run: |
+        tags=($(git tag))
+        truncate --size 0 assets.json
+        for tag in ${tags[@]}
+        do
+	        echo "Processing $tag" 
+         	gh release view $tag --json assets 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' >> assets.json
+        done
+        sed -i '1s/^/{\n    "assets": [\n/' assets.json
+        echo "}" >> assets.json
+      shell: bash
