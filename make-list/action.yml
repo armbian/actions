@@ -38,7 +38,7 @@ runs:
                 m=""
                 else
                 l="desktop"
-                m=" xfce config_base 3dsupport,browsers,chat,desktop_tools,editors,email,internet,multimedia,office,programming,remote_desktop"
+                m=" xfce config_base 3dsupport,browsers"
                 fi
               echo "$j   $branch    $k    $l  stable  yes $m" >> targets.txt
               echo "$j" >> boards.txt
