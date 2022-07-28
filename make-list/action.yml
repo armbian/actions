@@ -1,6 +1,10 @@
 
 name: "Build list"
 description: ""
+inputs:
+  type:
+    description: "conf,csc,tvb"
+    required: true
 runs:
   using: "composite"
   steps:
