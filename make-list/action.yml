@@ -40,7 +40,7 @@ runs:
                 l="desktop"
                 m=" xfce config_base 3dsupport,browsers,chat,desktop_tools,editors,email,internet,multimedia,office,programming,remote_desktop"
                 fi
-              echo "$j    $i    $k    $l  stable  yes $m" >> targets.txt
+              echo "$j   $branch    $k    $l  stable  yes $m" >> targets.txt
               echo "$j" >> boards.txt
             done
           done
