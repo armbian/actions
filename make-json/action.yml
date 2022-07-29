@@ -9,7 +9,7 @@ runs:
       run: |
 
         #sudo npm install --location=global json || true
-
+        cd distribution
         truncate README.me --size=0 || true
         echo "<table>" >> README.tmp
         git describe --tags --abbrev=0
