@@ -8,7 +8,7 @@ runs:
       id: make-json
       run: |
 
-        sudo npm install -g json
+        sudo npm install --location=global json
 
         truncate README.me --size=0
         echo "<table>" >> README.tmp
