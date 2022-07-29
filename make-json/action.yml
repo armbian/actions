@@ -7,6 +7,7 @@ runs:
     - name: "Make JSON"
       id: make-json
       run: |
+        pwd
         tags=($(git tag))
         truncate --size 0 assets.json
         for tag in ${tags[@]}
