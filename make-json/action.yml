@@ -1,4 +1,5 @@
 name: "Make JSON from releases"
+
 description: ""
 runs:
   using: "composite"
