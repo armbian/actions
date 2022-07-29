@@ -1,0 +1,76 @@
+name: "Free space"
+author: ""
+description: ""
+branding:
+  icon: "terminal"
+  color: "gray-dark"
+runs:
+  using: "composite"
+  steps:
+    - name: Enable problem-matcher
+      shell: bash      
+      run: |
+      
+        sudo chmod 666 /var/run/docker.sock || true
+      
+        if [[ $(df -hT | grep /$ | awk '{print $(NF-1)}' | sed 's/%//') -gt 70 ]]; then
+           echo "Purging"
+           sudo docker system prune -af  || true
+           sudo docker volume rm $(sudo docker volume ls -q) 2>/dev/null || true
+        fi
+        
+        # clean ssh key folder
+        [[ -f "$HOME/.ssh/known_hosts" ]] && sudo rm "$HOME/.ssh/known_hosts" || true
+        # tmp mount for checking images
+        sudo mountpoint -q dl && sudo fusermount -u dl || true          
+        # standard mounts
+        sudo mountpoint -q build/output/debs && sudo fusermount -u build/output/debs || true
+        sudo mountpoint -q build/output/debs-beta && sudo fusermount -u build/output/debs-beta || true
+        sudo mountpoint -q build/cache/rootfs && sudo fusermount -u build/cache/rootfs || true        
+        sudo mountpoint -q build/cache/rootfs.upload && sudo fusermount -u build/cache/rootfs.upload || true
+        sudo mountpoint -q build/cache/toolchain && sudo fusermount -u build/cache/toolchain || true
+        sudo rm -rf build/output/debs/* build/output/debs-beta/* /var/log/journal || true
+        
+    - name: Fix permissions
+      shell: bash
+      run: |
+      
+        # make sure no temporally dirs are mounted from previous runs
+        while :
+          do
+              sudo pkill compile.sh || true
+              sudo pkill arm-binfmt-P || true
+              sudo pkill aarch64-binfmt-P || true
+              sudo pkill pixz || true
+              if [[ $(curl -s http://ifconfig.me) == "93.103.15.56" || $(curl -s http://ifconfig.me) == "188.227.12.36" ]]; then
+                  sudo mountpoint -q build/cache/rootfs && sudo fusermount -u build/cache/rootfs
+                  [[ $? -eq 0 ]] && sudo rm -rf build/cache/rootfs/*
+                  sudo mountpoint -q build/cache/toolchain && sudo fusermount -u build/cache/toolchain
+                  [[ $? -eq 0 ]] && sudo rm -rf build/cache/toolchain/*
+              fi
+              sudo mountpoint -q build/output/images && sudo fusermount -u build/output/images || true
+              [[ "$(df | grep "/.tmp" | wc -l)" -eq 0 && $(sudo mountpoint -q build/output/images; echo $?) -ge 1 ]] && sudo rm -rf build/.tmp && break
+              echo "Mounted temp directories. Trying to unmount."
+              df | grep ".tmp" | awk '{print $6}' | xargs sudo umount 2>/dev/null || true
+              sudo rm -f build/cache/hash/*
+              sudo rm -f build/cache/hash-beta/*
+              sleep 10
+          done
+          [[ -d build ]] && sudo chown -R $USER:$USER build/. || true
+          [[ -d build/output/images ]] && sudo rm -rf build/output/images/* || true
+          export TERM=dumb
+          export COLUMNS=40
+#          # use local resources if possible
+#          if [[ $(curl -s http://ifconfig.me) == "93.103.15.56" ]]; then
+#              sudo rm -rf build/cache/toolchain/*
+#              sudo mkdir -p build/cache/toolchain build/cache/rootfs || true
+#              ! sudo mountpoint -q cache/toolchain && sudo mount nas:/tank/armbian/toolchain.armbian.com build/cache/toolchain -o rsize=32768,wsize=32768,timeo=5,retrans=2,actimeo=60,retry=3 || true
+#              ! sudo mountpoint -q cache/rootfs && sudo mount nas:/tank/armbian/dl.armbian.com/_rootfs build/cache/rootfs -o rsize=32768,wsize=32768,timeo=5,retrans=2,actimeo=60,retry=3 || true
+#          fi
+          
+#          if [[ $(curl -s http://ifconfig.me) == "188.227.12.36" || $(curl -s http://ifconfig.me) == "206.82.251.151" ]]; then
+#              sudo rm -rf build/cache/sources
+#              sudo mkdir -p build/cache/toolchain build/cache/rootfs || true
+#              ! sudo mountpoint -q cache/toolchain && sudo mount --bind /mnt/armbian/cache/toolchain/ build/cache/toolchain -o rsize=32768,wsize=32768,timeo=5,retrans=2,actimeo=60,retry=3 || true
+#              ! sudo mountpoint -q cache/rootfs && sudo mount --bind /mnt/armbian/cache/rootfs/ build/cache/rootfs/ -o rsize=32768,wsize=32768,timeo=5,retrans=2,actimeo=60,retry=3 || true
+#          fi
