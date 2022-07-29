@@ -5,7 +5,7 @@ runs:
   using: "composite"
   steps:
     - name: npm install
-        uses: jaid/action-npm-install@v1.2.1
+      uses: jaid/action-npm-install@v1.2.1
     - name: "Make JSON"
       id: make-json
       run: |
