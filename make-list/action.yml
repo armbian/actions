@@ -19,6 +19,7 @@ runs:
       id: check-released
       shell: bash
       run: |
+        sudo apt -y update
         sudo apt -y install npm
         sudo npm install --location=global json || true
         truncate targets-present.txt targets-boards.txt --size=0 || true
