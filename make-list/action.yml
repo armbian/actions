@@ -70,7 +70,7 @@ runs:
                 l="cli"
                 m=""
                 else
-                l="desktop"
+                l="xfce"
                 m=" xfce config_base 3dsupport,browsers"
                 fi
               if grep "$j $branch $k $l" targets-present.txt; then
