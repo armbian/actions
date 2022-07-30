@@ -15,6 +15,27 @@ runs:
         repository: armbian/distribution
         path: distribution
         clean: false
+    - name: "Check released"
+      id: check-released
+      shell: bash
+      run: |
+        sudo npm install --location=global json || true
+        truncate targets-present.txt targets-boards.txt --size=0 || true
+        gh release view $(gh release list | awk '{print $1}' | head -1) --json assets 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url -d, | sort | (
+          while read -r line; do
+           name=$(echo $line | cut -d"," -f1)
+           url=$(echo $line | cut -d"," -f2)
+           if [ "${name: -3}" == ".xz" ]; then
+             out_name=$(echo $name | cut -d"_" -f3 | awk '{print tolower($0)}')
+             out_release=$(echo $name | cut -d"_" -f4)
+             out_branch=$(echo $name | cut -d"_" -f5)
+             out_kernel=$(echo $name | cut -d"_" -f6-7 | cut -d"." -f1-3 | cut -d"_" -f1)
+             out_desktop=$(echo $name | cut -d"_" -f7)
+             echo -ne "$out_name $out_branch $out_release $out_desktop\n" >> targets-present.txt
+             echo -ne "$out_name" >> targets-boards.txt
+           fi
+          done
+        ) 
     - name: "Build images"
       id: build-images
       run: |
