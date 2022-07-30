@@ -5,6 +5,8 @@ inputs:
   type:
     description: "conf,csc,tvb"
     required: true
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 runs:
   using: "composite"
   steps:
