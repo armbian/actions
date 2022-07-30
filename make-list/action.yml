@@ -67,14 +67,18 @@ runs:
               for l in ${de[@]}
               do
                 if [[ $l == cli ]]; then         
-                l="cli     "
+                l="cli"
                 m=""
                 else
                 l="desktop"
                 m=" xfce config_base 3dsupport,browsers"
                 fi
+              if grep "$j $branch $k $l" targets-present.txt; then
+              echo "Already done. Skipping."
+              else
               echo "$j   $branch    $k    $l  stable  yes $m" >> targets.txt
               echo "$j" >> boards.txt
+              fi
             done
           done
         done
