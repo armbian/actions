@@ -6,8 +6,6 @@ inputs:
     description: "conf,csc,tvb"
     required: true
 runs:
-  env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   using: "composite"
   steps:
     - name: Checkout repository
