@@ -20,9 +20,10 @@ runs:
       shell: bash
       run: |
         sudo apt -y update
-        sudo apt -y install npm
-        sudo npm install --location=global json || true
+        sudo apt -y install npm nodejs
+        sudo npm install json --global || true
         truncate targets-present.txt targets-boards.txt --size=0 || true
+        cd distribution
         gh release view $(gh release list | awk '{print $1}' | head -1) --json assets 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url -d, | sort | (
           while read -r line; do
            name=$(echo $line | cut -d"," -f1)
@@ -37,7 +38,8 @@ runs:
              echo -ne "$out_name" >> targets-boards.txt
            fi
           done
-          ) 
+          )
+          cd ..
     - name: "Build images"
       id: build-images
       run: |
