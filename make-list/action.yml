@@ -46,7 +46,8 @@ runs:
       id: build-images
       run: |
         truncate targets.txt boards.txt --size=0
-        string=($(find build/config/boards/ -mindepth 1 -maxdepth 1 -type f -iregex '.*\.\(tvb\|csc\|wip\)$' 2> /dev/null | sort | cut -d"/" -f4 | cut -d"." -f1))
+        # -iregex '.*\.\(tvb\|csc\|wip\)$' # if we only want those
+        string=($(find build/config/boards/ -mindepth 1 -maxdepth 1 -type f -not -name "*.eos" 2> /dev/null | sort | cut -d"/" -f4 | cut -d"." -f1))
         release=("jammy" "sid")
        
         for j in ${string[@]}
@@ -76,6 +77,9 @@ runs:
               if grep "$j $branch $k $l" targets-present.txt; then
               echo "Already done. Skipping."
               else
+              
+              [[ $j == rpi4b && $k != sid ]]
+              [[ $j == rpi4b && $k == sid ]] &&  continue # exceptions
               echo "$j   $branch    $k    $l  stable  yes $m" >> targets.txt
               echo "$j" >> boards.txt
               fi
