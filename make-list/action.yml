@@ -77,9 +77,7 @@ runs:
               if grep "$j $branch $k $l" targets-present.txt; then
               echo "Already done. Skipping."
               else
-              
-              [[ $j == rpi4b && $k != sid ]]
-              [[ $j == rpi4b && $k == sid ]] &&  continue # exceptions
+              [[ $j == rpi4b && $k == sid ]] && continue # exceptions
               echo "$j   $branch    $k    $l  stable  yes $m" >> targets.txt
               echo "$j" >> boards.txt
               fi
