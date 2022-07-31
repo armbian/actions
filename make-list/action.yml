@@ -47,7 +47,8 @@ runs:
       run: |
         truncate targets.txt boards.txt --size=0
         # -iregex '.*\.\(tvb\|csc\|wip\)$' # if we only want those
-        string=($(find build/config/boards/ -mindepth 1 -maxdepth 1 -type f -not -name "*.eos" 2> /dev/null | sort | cut -d"/" -f4 | cut -d"." -f1))
+        # -not -name "*.eos"
+        string=($(find build/config/boards/ -mindepth 1 -maxdepth 1 -type f -iregex '.*\.\(tvb\|csc\|wip\)$' 2> /dev/null | sort | cut -d"/" -f4 | cut -d"." -f1))
         release=("jammy" "sid")
        
         for j in ${string[@]}
