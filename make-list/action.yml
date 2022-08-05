@@ -85,4 +85,5 @@ runs:
             done
           done
         done
+        cat boards.txt
       shell: bash
