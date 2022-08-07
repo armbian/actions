@@ -35,6 +35,7 @@ runs:
              out_kernel=$(echo $name | cut -d"_" -f6-7 | cut -d"." -f1-3 | cut -d"_" -f1)
              out_desktop=$(echo $name | cut -d"_" -f7)
              out_desktop=${out_desktop:-cli}
+             [[ $out_desktop == xfce ]] && out_desktop="desktop"
              echo -ne "$out_name $out_branch $out_release $out_desktop\n" >> ../targets-present.txt
              echo -ne "$out_name" >> ../targets-boards.txt
            fi
