@@ -9,8 +9,6 @@ runs:
       run: |
       
         sudo chmod 666 /var/run/docker.sock || true
-        
-        sudo apt -y install zstd
      
         if [[ $(df -hT | grep /$ | awk '{print $(NF-1)}' | sed 's/%//') -gt 90 ]]; then
            echo "Purging Docker"
