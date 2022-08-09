@@ -10,9 +10,9 @@ runs:
       
         sudo chmod 666 /var/run/docker.sock || true
       
-        if [[ $(df -hT | grep /$ | awk '{print $(NF-1)}' | sed 's/%//') -gt 70 ]]; then
+        if [[ $(df -hT | grep /$ | awk '{print $(NF-1)}' | sed 's/%//') -gt 90 ]]; then
            echo "Purging Docker"
-           sudo docker system prune -af  || true
+           #sudo docker system prune -af  || true
            sudo docker volume rm $(sudo docker volume ls -q) 2>/dev/null || true
         fi
         
