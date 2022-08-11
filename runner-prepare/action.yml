@@ -8,6 +8,9 @@ runs:
       shell: bash      
       run: |
       
+        echo "The operating system on the runner is $env:RUNNER_OS."
+        echo "Action path $env:GITHUB_ACTION_PATH."
+      
         sudo chmod 666 /var/run/docker.sock || true
      
         if [[ $(df -hT | grep /$ | awk '{print $(NF-1)}' | sed 's/%//') -gt 90 ]]; then
