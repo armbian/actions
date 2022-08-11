@@ -9,7 +9,8 @@ runs:
       run: |
       
         echo "The operating system on the runner is ${{ github.repository }}"
-        echo "Action path $env:GITHUB_ACTION_PATH."
+        echo "The operating system on the runner is ${{ github.action_path }}"        
+        echo "The operating system on the runner is ${{ github.runner_name }}"
       
         sudo chmod 666 /var/run/docker.sock || true
      
