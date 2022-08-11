@@ -65,3 +65,9 @@ runs:
 
           export TERM=dumb
           export COLUMNS=40
+
+    - name: Clean runner
+      shell: bash
+      run: |
+        
+        find $(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev) -mindepth 1 -maxdepth 1 -type d ! -name "_*" ! -name "$(echo $PTH | rev | cut -d"/" -f2 | rev)"
