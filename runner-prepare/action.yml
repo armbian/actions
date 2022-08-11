@@ -71,5 +71,7 @@ runs:
       shell: bash
       run: |
         
-        sudo find $(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev) -mindepth 1 -maxdepth 1 -type d ! \
+        WORKSPACE=$(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev)
+        sudo find $WORKSPACE -mindepth 1 -maxdepth 1 -type d ! \
         -name "build" ! -name "_*" ! -name "$(echo ${{ github.workspace }} | rev | cut -d"/" -f2 | rev)"
+        ls -l $WORKSPACE
