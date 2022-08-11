@@ -8,11 +8,6 @@ runs:
       shell: bash      
       run: |
       
-        echo "The operating system on the runner is ${{ github.repository }}"
-        echo "The operating system on the runner is ${{ github.base_ref }}"        
-        echo "The operating system on the runner is ${{ github.workspace }}"
-        sudo df
-      
         sudo chmod 666 /var/run/docker.sock || true
      
         if [[ $(df -hT | grep /$ | awk '{print $(NF-1)}' | sed 's/%//') -gt 90 ]]; then
@@ -71,6 +66,7 @@ runs:
       shell: bash
       run: |
         
+        # Removing all other projects, except build, there do cleaning only
         WORKSPACE=$(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev)
         sudo find $WORKSPACE -mindepth 1 -maxdepth 1 -type d ! -name "build" ! -name "_*" ! -name "$(echo ${{ github.workspace }} | rev | cut -d"/" -f2 | rev)" -exec sudo rm -rf {} + || true
         sudo rm -rf $WORKSPACE/build/build/build/cache/ccache $WORKSPACE/build/build/build/cache/rootfs || true
