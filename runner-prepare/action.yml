@@ -11,6 +11,7 @@ runs:
         echo "The operating system on the runner is ${{ github.repository }}"
         echo "The operating system on the runner is ${{ github.base_ref }}"        
         echo "The operating system on the runner is ${{ github.workspace }}"
+        sudo df
       
         sudo chmod 666 /var/run/docker.sock || true
      
