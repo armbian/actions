@@ -4,14 +4,32 @@ description: "Cleaning self hosted runners"
 runs:
   using: "composite"
   steps:
+
+    - name: Kill processes
+      shell: bash
+      run: |
+
+        # make sure no temporally dirs are mounted from previous runs
+        while :
+          do
+              sudo pkill compile.sh || true
+              sudo pkill arm-binfmt-P || true
+              sudo pkill aarch64-binfmt-P || true
+              sudo pkill pixz || true
+              df | grep ".tmp" | awk '{print $6}' | xargs sudo umount 2>/dev/null || true
+              [[ "$(df | grep "/.tmp" | wc -l)" -eq 0 ]] && sudo rm -rf build/.tmp && break
+              sleep 5
+          done
+
     - name: Clean temporally folders
       shell: bash      
       run: |
-      
+
+        # fix docker permission
         sudo chmod 666 /var/run/docker.sock || true
      
+        # purge docker volumes to save some space
         if [[ $(df -hT | grep /$ | awk '{print $(NF-1)}' | sed 's/%//') -gt 90 ]]; then
-           echo "Purging Docker volumes to save some space"           
            sudo docker volume rm $(sudo docker volume ls -q) 2>/dev/null || true
         fi
         
@@ -21,56 +39,15 @@ runs:
         # umount all our mounts
         WORKSPACE=$(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev)
         sudo mount | grep $WORKSPACE | cut -d" " -f3 | xargs sudo umount || true
-      
-        # tmp mount for checking images
-        #sudo mountpoint -q dl && sudo fusermount -u dl || true          
-      
-        # standard mounts
-        #sudo mountpoint -q build/output/debs && sudo fusermount -u build/output/debs || true
-        #sudo mountpoint -q build/output/debs-beta && sudo fusermount -u build/output/debs-beta || true
-        #sudo mountpoint -q build/cache/rootfs && sudo fusermount -u build/cache/rootfs || true        
-        #sudo mountpoint -q build/cache/rootfs.upload && sudo fusermount -u build/cache/rootfs.upload || true
-        #sudo mountpoint -q build/cache/toolchain && sudo fusermount -u build/cache/toolchain || true
-        sudo rm -rf build/output/debs/* build/output/debs-beta/* /var/log/journal || true
-        
-    - name: Umount temporally mounts
-      shell: bash
-      run: |
-      
-        # make sure no temporally dirs are mounted from previous runs
-        while :
-          do
-              sudo pkill compile.sh || true
-              sudo pkill arm-binfmt-P || true
-              sudo pkill aarch64-binfmt-P || true
-              sudo pkill pixz || true
-              if [[ $(curl -s http://ifconfig.me) == "93.103.15.56" || $(curl -s http://ifconfig.me) == "188.227.12.36" ]]; then
-                  sudo mountpoint -q build/cache/rootfs && sudo fusermount -u build/cache/rootfs
-                  [[ $? -eq 0 ]] && sudo rm -rf build/cache/rootfs/*
-                  sudo mountpoint -q build/cache/toolchain && sudo fusermount -u build/cache/toolchain
-                  [[ $? -eq 0 ]] && sudo rm -rf build/cache/toolchain/*
-              fi
-              sudo mountpoint -q build/output/images && sudo fusermount -u build/output/images || true
-              [[ "$(df | grep "/.tmp" | wc -l)" -eq 0 && $(sudo mountpoint -q build/output/images; echo $?) -ge 1 ]] && sudo rm -rf build/.tmp && break
-              echo "Mounted temp directories. Trying to unmount."
-              df | grep ".tmp" | awk '{print $6}' | xargs sudo umount 2>/dev/null || true
-              sudo rm -f build/cache/hash/*
-              sudo rm -f build/cache/hash-beta/*
-              sleep 10
-          done
-
-          [[ -d build ]] && sudo chown -R $USER:$USER build/. || true
-          [[ -d build/output/images ]] && sudo rm -rf build/output/images/* || true
-
-          export TERM=dumb
-          export COLUMNS=40
 
     - name: Clean runner
       shell: bash
       run: |
-        
+
         # Removing all other projects, except build, there do cleaning only
         WORKSPACE=$(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev)
         sudo find $WORKSPACE -mindepth 1 -maxdepth 1 -type d ! -name "build" ! -name "_*" ! -name "$(echo ${{ github.workspace }} | rev | cut -d"/" -f2 | rev)" -exec sudo rm -rf {} + || true
         sudo rm -rf $WORKSPACE/build/build/build/cache/ccache $WORKSPACE/build/build/build/cache/rootfs || true
         sudo rm -rf $WORKSPACE/build/output/debs/* $WORKSPACE/build/output/debs-beta/* /var/log/journal || true
+        sudo rm -rf $WORKSPACE/build/cache/hash/* $WORKSPACE/build/cache/hash-beta/* $WORKSPACE/build/output/images/* || true
+        sudo chown -R $USER:$USER $WORKSPACE/build/. || true
