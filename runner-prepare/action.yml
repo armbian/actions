@@ -20,8 +20,7 @@ runs:
       
         # umount all our mounts
         WORKSPACE=$(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev)
-        echo $WORKSPACE
-        #sudo mount | grep $WORKSPACE | cut -d" " -f3 | xargs sudo umount
+        sudo mount | grep $WORKSPACE | cut -d" " -f3 | xargs sudo umount || true
       
         # tmp mount for checking images
         #sudo mountpoint -q dl && sudo fusermount -u dl || true          
