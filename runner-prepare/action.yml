@@ -38,6 +38,7 @@ runs:
       
         # umount all our mounts
         WORKSPACE=$(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev)
+        sudo mount | grep $WORKSPACE | cut -d" " -f3
         sudo mount | grep $WORKSPACE | cut -d" " -f3 | xargs sudo umount || true
 
     - name: Clean runner
@@ -50,6 +51,6 @@ runs:
         sudo rm -rf $WORKSPACE/build/build/build/cache/ccache $WORKSPACE/build/build/build/cache/rootfs || true
         sudo rm -rf $WORKSPACE/build/output/debs/* $WORKSPACE/build/output/debs-beta/* /var/log/journal || true
         sudo rm -rf $WORKSPACE/build/cache/hash/* $WORKSPACE/build/cache/hash-beta/* $WORKSPACE/build/output/images/* || true
-        sudo chown -R $USER:$USER $WORKSPACE/build/. || true
+        [[ -d $WORKSPACE/build/ ]] && sudo chown -R $USER:$USER $WORKSPACE/build/. || true
         # debug
         sudo df
