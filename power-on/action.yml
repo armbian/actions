@@ -26,5 +26,5 @@ runs:
       if: ${{ github.repository_owner == 'Armbian' }}
       shell: bash
       run: |
-      
-        run: ssh -T -i ~/.ssh/poweron ${{ inputs.USER_REPOSITORY }}@${{ inputs.HOST_REPOSITORY }}
+
+        ssh -T -i ~/.ssh/poweron ${{ inputs.USER_REPOSITORY }}@${{ inputs.HOST_REPOSITORY }}
