@@ -3,7 +3,12 @@ author: "Igor Pecovnik"
 description: "Cleaning self hosted runners"
 inputs:
   KEY_POWER_ON:
-    description: SSH key for power server
+    required: true
+  KNOWN_HOSTS_REPOSITORY:
+    required: true
+  USER_REPOSITORY:
+    required: true
+  HOST_REPOSITORY:
     required: true
 runs:
   using: "composite"
@@ -14,7 +19,7 @@ runs:
       with:
         key: ${{ inputs.KEY_POWER_ON }}
         name: poweron
-        known_hosts: ${{ secrets.KNOWN_HOSTS_REPOSITORY }}
+        known_hosts: ${{ inputs.KNOWN_HOSTS_REPOSITORY }}
         if_key_exists: replace
 
     - name: Update repository
@@ -22,4 +27,4 @@ runs:
       run: |
         
         if: ${{ github.repository_owner == 'Armbian' && env.SKIP != 'yes' }}
-        run: ssh -T -i ~/.ssh/poweron ${{ secrets.USER_REPOSITORY }}@${{ secrets.HOST_REPOSITORY }}
+        run: ssh -T -i ~/.ssh/poweron ${{ inputs.USER_REPOSITORY }}@${{ inputs.HOST_REPOSITORY }}
