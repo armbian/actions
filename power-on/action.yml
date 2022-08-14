@@ -12,8 +12,8 @@ runs:
     - name: Install SSH key for repository
       uses: shimataro/ssh-key-action@v2
       with:
-        key: ${{ secrets.KEY_POWER_ON }}
-        name: ${{ inputs.KEY_ID }}
+        key: ${{ inputs.KEY_POWER_ON }}
+        name: poweron
         known_hosts: ${{ secrets.KNOWN_HOSTS_REPOSITORY }}
         if_key_exists: replace
 
@@ -22,4 +22,4 @@ runs:
       run: |
         
         if: ${{ github.repository_owner == 'Armbian' && env.SKIP != 'yes' }}
-        run: ssh -T -i ~/.ssh/${{ inputs.KEY_ID }} ${{ secrets.USER_REPOSITORY }}@${{ secrets.HOST_REPOSITORY }}
+        run: ssh -T -i ~/.ssh/poweron ${{ secrets.USER_REPOSITORY }}@${{ secrets.HOST_REPOSITORY }}
