@@ -23,8 +23,8 @@ runs:
         if_key_exists: replace
 
     - name: Update repository
+      if: ${{ github.repository_owner == 'Armbian' }}
       shell: bash
       run: |
-        
-        if: ${{ github.repository_owner == 'Armbian' && env.SKIP != 'yes' }}
+      
         run: ssh -T -i ~/.ssh/poweron ${{ inputs.USER_REPOSITORY }}@${{ inputs.HOST_REPOSITORY }}
