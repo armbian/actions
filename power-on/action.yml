@@ -1,6 +1,6 @@
-name: "Runner prepare"
+name: "Power system for hardware testing"
 author: "Igor Pecovnik"
-description: "Cleaning self hosted runners"
+description: "DUT system power on"
 inputs:
   KEY_POWER_ON:
     required: true
@@ -28,3 +28,8 @@ runs:
       run: |
 
         ssh -T -i ~/.ssh/poweron ${{ inputs.USER_REPOSITORY }}@${{ inputs.HOST_REPOSITORY }}
+        
+    - name: Sleep for 5m to make sure switches were booted up
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '5m'
