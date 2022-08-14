@@ -1,6 +1,10 @@
 name: "Runner prepare"
 author: "Igor Pecovnik"
 description: "Cleaning self hosted runners"
+inputs:
+  KEY_POWER_ON:
+    description: SSH key for power server
+    required: true
 runs:
   using: "composite"
   steps:
