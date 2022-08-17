@@ -18,5 +18,7 @@ runs:
       run: |
         
         ROOTFSCACHE_VERSION=$(cd cache;gh release list --exclude-drafts | awk '{print $(NF-1)}')
-        [[ -z "$ROOTFSCACHE_VERSION" ]] && ROOTFSCACHE_VERSION="0001"
+        [[ -z "$ROOTFSCACHE_VERSION" ]] && ROOTFSCACHE_VERSION="0000"
+        ROOTFSCACHE_VERSION=$(expr $ROOTFSCACHE_VERSION + 1)
+        ROOTFSCACHE_VERSION=$(printf "%04d\n" ${ROOTFSCACHE_VERSION})
         echo "ROOTFSCACHE_VERSION=${ROOTFSCACHE_VERSION}" >> $GITHUB_ENV
