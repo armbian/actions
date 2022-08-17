@@ -17,7 +17,7 @@ runs:
       shell: bash
       run: |
         
-        ROOTFSCACHE_VERSION=$(cd cache;gh release list --exclude-drafts | awk '{print $(NF-1)}')
+        ROOTFSCACHE_VERSION=$(cd cache;gh release list --exclude-drafts | awk '{print $(NF-1)}' | head -1)
         [[ -z "$ROOTFSCACHE_VERSION" ]] && ROOTFSCACHE_VERSION="0000"
         ROOTFSCACHE_VERSION=$(expr $ROOTFSCACHE_VERSION + 1)
         ROOTFSCACHE_VERSION=$(printf "%04d\n" ${ROOTFSCACHE_VERSION})
