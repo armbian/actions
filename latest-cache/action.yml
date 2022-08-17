@@ -12,10 +12,9 @@ runs:
         path: cache
         clean: false
         
-    - name: "Check released"
+    - name: "Get last release version from cache"
       id: check-released
       shell: bash
       run: |
-
-        cd cache
-        echo "ROOTFSCACHE_VERSION=$(gh release list --exclude-drafts | awk '{print $(NF-1)}')" >> $GITHUB_ENV
+        
+        echo "ROOTFSCACHE_VERSION=$(cd cache;gh release list --exclude-drafts | awk '{print $(NF-1)}')" >> $GITHUB_ENV
