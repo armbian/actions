@@ -11,13 +11,11 @@ runs:
         repository: armbian/cache
         path: cache
         clean: false
+        
     - name: "Check released"
       id: check-released
       shell: bash
       run: |
 
-        sudo apt -y update
-        sudo apt -y install npm nodejs
-        sudo npm install json --global || true
         cd cache
-        gh release list --exclude-drafts | awk '{print $(NF-1)}'
+        echo "ROOTFSCACHE_VERSION=$(gh release list --exclude-drafts | awk '{print $(NF-1)}')" >> $GITHUB_ENV
