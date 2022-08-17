@@ -1,0 +1,24 @@
+name: "Get latest cache version"
+author: "Igor Pecovnik"
+description: "Get latest cache version"
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+        repository: armbian/cache
+        path: cache
+        clean: false
+    - name: "Check released"
+      id: check-released
+      shell: bash
+      run: |
+
+        sudo apt -y update
+        sudo apt -y install npm nodejs
+        sudo npm install json --global || true
+        truncate targets-present.txt targets-boards.txt --size=0 || true
+        cd community
+        gh release view $(gh release list | awk '{print $1}' | head -1) --json assets 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d'
