@@ -38,6 +38,8 @@ runs:
       shell: bash      
       run: |
 
+        sudo rm -rf changes 2>/dev/null || true
+
         # fix docker permission
         sudo chmod 666 /var/run/docker.sock || true
      
