@@ -19,72 +19,64 @@ runs:
       id: check-released
       shell: bash
       run: |
-        #sudo apt -y update
-        #sudo apt -y install npm nodejs
-        sudo npm install json --global || true
+
         truncate targets-present.txt targets-boards.txt --size=0 || true
         cd community
         gh release view $(gh release list -L 1 --exclude-drafts | head -1 | awk '{print $(NF-1)}') --json assets 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url -d, | sort | (
-          while read -r line; do
-           name=$(echo $line | cut -d"," -f1)
-           url=$(echo $line | cut -d"," -f2)
-           if [ "${name: -3}" == ".xz" ]; then
-             out_name=$(echo $name | cut -d"_" -f3 | awk '{print tolower($0)}')
-             out_release=$(echo $name | cut -d"_" -f4)
-             out_branch=$(echo $name | cut -d"_" -f5)
-             out_kernel=$(echo $name | cut -d"_" -f6-7 | cut -d"." -f1-3 | cut -d"_" -f1)
-             out_desktop=$(echo $name | cut -d"_" -f7)
-             out_desktop=${out_desktop:-cli}
-             [[ $out_desktop == xfce ]] && out_desktop="desktop"
-             echo -ne "$out_name $out_branch $out_release $out_desktop\n" >> ../targets-present.txt
-             echo -ne "$out_name" >> ../targets-boards.txt
-           fi
-          done
-          )
-          cd ..
-          cat targets-present.txt
+        while read -r line; do
+          name=$(echo $line | cut -d"," -f1)
+          url=$(echo $line | cut -d"," -f2)
+          if [ "${name: -3}" == ".xz" ]; then
+            out_name=$(echo $name | cut -d"_" -f3 | awk '{print tolower($0)}')
+            out_release=$(echo $name | cut -d"_" -f4)
+            out_branch=$(echo $name | cut -d"_" -f5)
+            out_kernel=$(echo $name | cut -d"_" -f6-7 | cut -d"." -f1-3 | cut -d"_" -f1)
+            out_desktop=$(echo $name | cut -d"_" -f7)
+            out_desktop=${out_desktop:-cli}
+            [[ $out_desktop == xfce ]] && out_desktop="desktop"
+            echo -ne "$out_name $out_branch $out_release $out_desktop\n" >> ../targets-present.txt
+            echo -ne "$out_name" >> ../targets-boards.txt
+          fi
+        done
+        )
+        cd ..
+
     - name: "Build images"
       id: build-images
-      run: |
-        truncate targets.txt boards.txt --size=0
-        # -iregex '.*\.\(tvb\|csc\|wip\)$' # if we only want those
-        # -not -name "*.eos"
-        string=($(find build/config/boards/ -mindepth 1 -maxdepth 1 -type f -iregex '.*\.\(tvb\|csc\|wip\)$' 2> /dev/null | sort | cut -d"/" -f4 | cut -d"." -f1))
-        release=("jammy" "sid")
-       
-        for j in ${string[@]}
-        do
-          for k in ${release[@]}
-          do
-            branch="current"
-            KERNEL=$(cat build/config/boards/$j.* | grep KERNEL_TARGET || true)
-            DESKTOP=$(cat build/config/boards/$j.* | grep BUILD_DESKTOP || true)
-            if [[ -z "$(echo $KERNEL | grep $branch)" ]]; then
-                branch=$(echo "$KERNEL" | sed 's/"//g' | cut -d"=" -f2)
-            fi
-            if [[ -n "$(echo $DESKTOP | grep no)" ]]; then
-            de=("cli")
-            else
-            de=("cli" "xfce")
-            fi
-              for l in ${de[@]}
-              do
-                if [[ $l == cli ]]; then         
-                l="cli"
-                m=""
-                else
-                l="desktop"
-                m=" xfce config_base 3dsupport,browsers"
-                fi
-              if grep "$j $branch $k $l" targets-present.txt; then
-              echo "Already done. Skipping."
-              else
-              [[ $j == rpi4b && $k == sid ]] && continue # exceptions
-              echo "$j   $branch    $k    $l  stable  yes $m" >> targets.txt
-              echo "$j" >> boards.txt
-              fi
-            done
-          done
-        done
-        cat targets.txt
       shell: bash
+      run: |
+
+      truncate targets.txt boards.txt --size=0
+        boards=($(find build/config/boards/ -mindepth 1 -maxdepth 1 -type f -iregex '.*\.\(tvb\|csc\|wip\)$' 2> /dev/null | sort | cut -d"/" -f4 | cut -d"." -f1))
+        releases=("jammy" "sid")
+        branches=("legacy" "current" "edge")
+        desktops=("cli" "desktop")
+        cleaned=()
+        for board in ${boards[@]}
+         do
+          for release in ${releases[@]}
+          do
+           for branch in ${branches[@]}
+            do
+            for desktop in ${desktops[@]}
+            do
+              if [[ $desktop == desktop ]]; then
+                 variant=" xfce     config_base    3dsupport browsers chat desktop_tools editors email internet multimedia office programming remote_desktop"
+               else
+                 variant=""
+              fi
+              if grep "$board $branch $release $desktop" targets-present.txt >/dev/null; then
+              :
+              else
+              #
+              KERNEL=$(cat build/config/boards/$board.* | grep KERNEL_TARGET || true)
+              [[ -z "$(echo $KERNEL | grep $branch)" ]] && continue # exceptions
+              [[ $branch == legacy && $board != rock-5b ]] && continue # exceptions
+              [[ $board == rpi4b && $release == sid ]] && continue # exceptions
+              printf "%-25s %-8s %-6s %-8s %-8s %-30s\n" "$board" "$branch" "$release" "$desktop" "stable  yes" "$variant" >> targets.txt
+              echo "$board" >> boards.txt
+              fi
+           done
+          done
+         done
+        done
