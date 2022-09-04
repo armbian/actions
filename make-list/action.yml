@@ -69,7 +69,9 @@ runs:
               echo "Already present"
               else
               KERNEL=$(cat build/config/boards/$board.* | grep KERNEL_TARGET || true)
+              DESKTOP=$(cat build/config/boards/$board.* | grep BUILD_DESKTOP || true)
               [[ -z "$(echo $KERNEL | grep $branch)" ]] && continue
+              [[ -n "$(echo $DESKTOP | grep no)" && $desktop == desktop ]] && continue
               [[ $branch == legacy && $board != rock-5b ]] && continue
               [[ $board == rpi4b && $release == sid ]] && continue
               printf "%-25s %-8s %-6s %-8s %-8s %-30s\n" "$board" "$branch" "$release" "$desktop" "stable  yes" "$variant" >> targets.txt
