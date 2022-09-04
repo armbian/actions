@@ -22,6 +22,7 @@ runs:
 
         truncate targets-present.txt targets-boards.txt --size=0 || true
         cd community
+        sudo apt-get -y --allow-unauthenticated install npm nodejs || true
         gh release view $(gh release list -L 1 --exclude-drafts | head -1 | awk '{print $(NF-1)}') --json assets 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url -d, | sort | (
         while read -r line; do
           name=$(echo $line | cut -d"," -f1)
