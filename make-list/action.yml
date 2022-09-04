@@ -19,8 +19,8 @@ runs:
       id: check-released
       shell: bash
       run: |
-        sudo apt -y update
-        sudo apt -y install npm nodejs
+        #sudo apt -y update
+        #sudo apt -y install npm nodejs
         sudo npm install json --global || true
         truncate targets-present.txt targets-boards.txt --size=0 || true
         cd community
