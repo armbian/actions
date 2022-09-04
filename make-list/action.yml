@@ -66,9 +66,8 @@ runs:
                  variant=""
               fi
               if grep "$board $branch $release $desktop" targets-present.txt >/dev/null; then
-              :
-              else
-              #
+              echo "Already present"
+              else              
               KERNEL=$(cat build/config/boards/$board.* | grep KERNEL_TARGET || true)
               [[ -z "$(echo $KERNEL | grep $branch)" ]] && continue # exceptions
               [[ $branch == legacy && $board != rock-5b ]] && continue # exceptions
