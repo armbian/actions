@@ -46,7 +46,7 @@ runs:
       shell: bash
       run: |
 
-      truncate targets.txt boards.txt --size=0
+        truncate targets.txt boards.txt --size=0
         boards=($(find build/config/boards/ -mindepth 1 -maxdepth 1 -type f -iregex '.*\.\(tvb\|csc\|wip\)$' 2> /dev/null | sort | cut -d"/" -f4 | cut -d"." -f1))
         releases=("jammy" "sid")
         branches=("legacy" "current" "edge")
