@@ -28,7 +28,6 @@ runs:
         # unath should be removed asap
         sudo apt-get -y --allow-unauthenticated update || true
         sudo apt-get -y --allow-unauthenticated upgrade || true
-        sudo apt-get -y --allow-unauthenticated install npm nodejs || true
 
     - name: Clean apt cacher
       shell: bash      
