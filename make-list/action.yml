@@ -79,6 +79,7 @@ runs:
               [[ $branch == legacy && $board != rock-5b ]] && continue
               [[ $board == rpi4b && $release == sid ]] && continue
               [[ $board == uefi-riscv64 && $release == sid ]] && continue
+              [[ $board == uefi-riscv64 && $desktop == desktop ]] && continue
               printf "%-25s %-8s %-6s %-8s %-8s %-30s\n" "$board" "$branch" "$release" "$desktop" "stable  yes" "$variant" >> targets.txt
               echo "$board" >> boards.txt
               fi
