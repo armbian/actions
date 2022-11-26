@@ -54,7 +54,7 @@ runs:
         releases=("kinetic" "sid")
         #branches=("legacy" "current" "edge")
         branches=("legacy" "edge")
-        desktops=("cli" "desktop")
+        desktops=("minimal" "cli" "desktop")
         cleaned=()
         for board in ${boards[@]}
          do
@@ -66,6 +66,9 @@ runs:
             do
               if [[ $desktop == desktop ]]; then
                  variant=" xfce     config_base    3dsupport browsers chat desktop_tools editors email internet multimedia office programming remote_desktop"
+              elif [[ $desktop == minimal ]]; then
+                 variant=""
+                 desktop="minimal"
                else
                  variant=""
               fi
