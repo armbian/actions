@@ -19,7 +19,7 @@ runs:
       run: |
 
         [[ -f "changes" ]] && sudo rm -rf changes 2>/dev/null || true
-        [[ -f "$HOME/.ssh/known_hosts" ]] && sudo rm "$HOME/.ssh/known_hosts" || true
+        #[[ -f "$HOME/.ssh/known_hosts" ]] && sudo rm "$HOME/.ssh/known_hosts" || true
 
         # umount all our mounts
         WORKSPACE=$(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev)
