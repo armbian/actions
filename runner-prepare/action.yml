@@ -5,10 +5,10 @@ runs:
   using: "composite"
   steps:
 
-    - name: Kill processes
-      shell: bash
-      run: |
-
+#    - name: Kill processes
+#      shell: bash
+#      run: |
+#
 #        # make sure no temporally dirs are mounted from previous runs
 #        while :
 #          do
@@ -29,10 +29,10 @@ runs:
         sudo apt-get -y --allow-unauthenticated update || true
         sudo apt-get -y --allow-unauthenticated upgrade || true
 
-    - name: Clean apt cacher
-      shell: bash      
-      run: |
-
+#    - name: Clean apt cacher
+#      shell: bash      
+#      run: |
+#
 #        sudo service apt-cacher-ng stop || true
 #        sudo rm -rf /var/cache/apt-cacher-ng/ || true
 #        sudo mkdir -p /var/cache/apt-cacher-ng/{headers,import,packages,private,temp} || true
@@ -54,10 +54,10 @@ runs:
 #        if [[ $(df -hT | grep /$ | awk '{print $(NF-1)}' | sed 's/%//') -gt 90 ]]; then
 #           sudo docker volume rm $(sudo docker volume ls -q) 2>/dev/null || true
 #        fi
-        
+
         # clean ssh key folder
         [[ -f "$HOME/.ssh/known_hosts" ]] && sudo rm "$HOME/.ssh/known_hosts" || true
-      
+
         # umount all our mounts
         WORKSPACE=$(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev)
         sudo mount | grep $WORKSPACE | cut -d" " -f3 || true
