@@ -31,3 +31,4 @@ runs:
         sudo rm -rf $WORKSPACE/build/build/build/cache/ccache $WORKSPACE/build/build/build/cache/rootfs || true
         sudo rm -rf $WORKSPACE/build/output/debs/* $WORKSPACE/build/output/debs-beta/* /var/log/journal || true
         sudo rm -rf $WORKSPACE/build/cache/hash/* $WORKSPACE/build/cache/hash-beta/* $WORKSPACE/build/output/images/* || true
+        sudo rm -rf $WORKSPACE/build/userpatches/* || true
