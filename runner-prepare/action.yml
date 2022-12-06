@@ -9,17 +9,17 @@ runs:
       shell: bash
       run: |
 
-        # make sure no temporally dirs are mounted from previous runs
-        while :
-          do
-              sudo pkill compile.sh || true
-              sudo pkill arm-binfmt-P || true
-              sudo pkill aarch64-binfmt-P || true
-              sudo pkill pixz || true
-              df | grep ".tmp" | awk '{print $6}' | xargs sudo umount 2>/dev/null || true
-              [[ "$(df | grep "/.tmp" | wc -l)" -eq 0 ]] && sudo rm -rf build/.tmp && break
-              sleep 5
-          done
+#        # make sure no temporally dirs are mounted from previous runs
+#        while :
+#          do
+#              sudo pkill compile.sh || true
+#              sudo pkill arm-binfmt-P || true
+#              sudo pkill aarch64-binfmt-P || true
+#              sudo pkill pixz || true
+#              df | grep ".tmp" | awk '{print $6}' | xargs sudo umount 2>/dev/null || true
+#              [[ "$(df | grep "/.tmp" | wc -l)" -eq 0 ]] && sudo rm -rf build/.tmp && break
+#              sleep 5
+#          done
 
     - name: Install needed
       shell: bash      
@@ -33,13 +33,13 @@ runs:
       shell: bash      
       run: |
 
-        sudo service apt-cacher-ng stop || true
-        sudo rm -rf /var/cache/apt-cacher-ng/ || true
-        sudo mkdir -p /var/cache/apt-cacher-ng/{headers,import,packages,private,temp} || true
-        sudo chown apt-cacher-ng:apt-cacher-ng -R /var/cache/apt-cacher-ng || true
-        sudo service apt-cacher-ng start || true
-        sudo apt-get -y purge linux-firmware libllvm13 snapd libllvm11 libllvm13 gcc-10 || true
-        sudo apt-get -y autoremove || true
+#        sudo service apt-cacher-ng stop || true
+#        sudo rm -rf /var/cache/apt-cacher-ng/ || true
+#        sudo mkdir -p /var/cache/apt-cacher-ng/{headers,import,packages,private,temp} || true
+#        sudo chown apt-cacher-ng:apt-cacher-ng -R /var/cache/apt-cacher-ng || true
+#        sudo service apt-cacher-ng start || true
+#        sudo apt-get -y purge linux-firmware libllvm13 snapd libllvm11 libllvm13 gcc-10 || true
+#        sudo apt-get -y autoremove || true
 
     - name: Clean temporally folders
       shell: bash      
@@ -47,13 +47,13 @@ runs:
 
         sudo rm -rf changes 2>/dev/null || true
 
-        # fix docker permission
-        sudo chmod 666 /var/run/docker.sock || true
+#        # fix docker permission
+#        sudo chmod 666 /var/run/docker.sock || true
      
-        # purge docker volumes to save some space
-        if [[ $(df -hT | grep /$ | awk '{print $(NF-1)}' | sed 's/%//') -gt 90 ]]; then
-           sudo docker volume rm $(sudo docker volume ls -q) 2>/dev/null || true
-        fi
+#        # purge docker volumes to save some space
+#        if [[ $(df -hT | grep /$ | awk '{print $(NF-1)}' | sed 's/%//') -gt 90 ]]; then
+#           sudo docker volume rm $(sudo docker volume ls -q) 2>/dev/null || true
+#        fi
         
         # clean ssh key folder
         [[ -f "$HOME/.ssh/known_hosts" ]] && sudo rm "$HOME/.ssh/known_hosts" || true
