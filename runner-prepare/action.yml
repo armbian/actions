@@ -19,6 +19,7 @@ runs:
       shell: bash      
       run: |
 
+        sudo rm -rf build/userpatches/* || true
         [[ -f "changes" ]] && sudo rm -rf changes 2>/dev/null || true
         #[[ -f "$HOME/.ssh/known_hosts" ]] && sudo rm "$HOME/.ssh/known_hosts" || true
 
@@ -31,4 +32,4 @@ runs:
         sudo rm -rf $WORKSPACE/build/build/build/cache/ccache $WORKSPACE/build/build/build/cache/rootfs || true
         sudo rm -rf $WORKSPACE/build/output/debs/* $WORKSPACE/build/output/debs-beta/* /var/log/journal || true
         sudo rm -rf $WORKSPACE/build/cache/hash/* $WORKSPACE/build/cache/hash-beta/* $WORKSPACE/build/output/images/* || true
-        sudo rm -rf $WORKSPACE/build/userpatches/* || true
+        
