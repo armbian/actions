@@ -22,6 +22,7 @@ runs:
       run: |
 
         sudo rm -rf build/userpatches/* || true
+        sudo rm -rf build/.tmp/ || true
         [[ -f "changes" ]] && sudo rm -rf changes 2>/dev/null || true
         #[[ -f "$HOME/.ssh/known_hosts" ]] && sudo rm "$HOME/.ssh/known_hosts" || true
 
