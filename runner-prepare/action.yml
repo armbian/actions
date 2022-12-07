@@ -28,7 +28,7 @@ runs:
 
         # umount all our mounts
         WORKSPACE=$(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev)
-        echo $WORKSPACE
+        echo ${{ github.workspace }}
         sudo mount | grep $WORKSPACE | cut -d" " -f3 || true
         sudo mount | grep $WORKSPACE | grep -E toolchain\|rootfs | cut -d" " -f3 | xargs sudo umount || true
         
