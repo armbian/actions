@@ -29,10 +29,9 @@ runs:
         # umount all our mounts
         WORKSPACE=$(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev)
         sudo mount | grep $WORKSPACE | cut -d" " -f3 || true
-        sudo mount | grep $WORKSPACE | cut -d" " -f3 | xargs sudo umount || true
+        sudo mount | grep $WORKSPACE | grep -E toolchain\|rootfs | cut -d" " -f3 | xargs sudo umount || true
         
         sudo find $WORKSPACE -mindepth 1 -maxdepth 1 -type d ! -name "build" ! -name "_*" ! -name "$(echo ${{ github.workspace }} | rev | cut -d"/" -f2 | rev)" -exec sudo rm -rf {} + || true
-        sudo rm -rf $WORKSPACE/build/build/build/cache/ccache $WORKSPACE/build/build/build/cache/rootfs || true
         sudo rm -rf $WORKSPACE/build/output/debs/* $WORKSPACE/build/output/debs-beta/* /var/log/journal || true
-        sudo rm -rf $WORKSPACE/build/cache/hash/* $WORKSPACE/build/cache/hash-beta/* $WORKSPACE/build/output/images/* || true
+        sudo rm -rf $WORKSPACE/build/cache/* $WORKSPACE/build/output/images/* || true
         
