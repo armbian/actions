@@ -29,6 +29,7 @@ runs:
         
         # them remove what we don't need
         sudo rm -rf ${{ github.workspace }}/build/cache/ || true
+        sudo rm -rf ${{ github.workspace }}/build/output/ || true
         sudo rm -rf ${{ github.workspace }}/build/userpatches/* || true
         sudo rm -rf ${{ github.workspace }}/build/.tmp/ || true        
         sudo rm -rf changes 2>/dev/null || true
