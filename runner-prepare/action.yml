@@ -21,18 +21,14 @@ runs:
       shell: bash      
       run: |
 
-        sudo rm -rf build/userpatches/* || true
-        sudo rm -rf build/.tmp/ || true
-        [[ -f "changes" ]] && sudo rm -rf changes 2>/dev/null || true
-        #[[ -f "$HOME/.ssh/known_hosts" ]] && sudo rm "$HOME/.ssh/known_hosts" || true
-
         # umount all our mounts
-        WORKSPACE=$(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev)
-        echo ${{ github.workspace }}
-        sudo mount | grep $WORKSPACE | cut -d" " -f3 || true
-        sudo mount | grep $WORKSPACE | grep -E toolchain\|rootfs | cut -d" " -f3 | xargs sudo umount || true
+        sudo mountpoint -q ${{ github.workspace }}/build/cache/utility && sudo umount ${{ github.workspace }}/build/cache/utility || true
+        sudo mountpoint -q ${{ github.workspace }}/build/cache/toolchain && sudo umount ${{ github.workspace }}/build/cache/toolchain || true
+        sudo mountpoint -q ${{ github.workspace }}/build/output/debs && sudo umount ${{ github.workspace }}/build/output/debs || true
+        sudo mountpoint -q ${{ github.workspace }}/build/output/debs-beta && sudo umount ${{ github.workspace }}/build/output/debs-beta || true
         
-        sudo find $WORKSPACE -mindepth 1 -maxdepth 1 -type d ! -name "build" ! -name "_*" ! -name "$(echo ${{ github.workspace }} | rev | cut -d"/" -f2 | rev)" -exec sudo rm -rf {} + || true
-        sudo rm -rf $WORKSPACE/build/output/debs/* $WORKSPACE/build/output/debs-beta/* /var/log/journal || true
-        sudo rm -rf $WORKSPACE/build/cache $WORKSPACE/build/output/images/* || true
-        
+        # them remove what we don't need
+        sudo rm -rf ${{ github.workspace }}/build/cache/ || true
+        sudo rm -rf ${{ github.workspace }}/build/userpatches/* || true
+        sudo rm -rf ${{ github.workspace }}/build/.tmp/ || true        
+        sudo rm -rf changes 2>/dev/null || true
