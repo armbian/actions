@@ -36,7 +36,7 @@ runs:
       shell: bash      
       run: |
 
-        echo ${{ inputs.filename }}
+        mkdir -p json
         sudo npm install --location=global json || true        
         gh release view --json assets --repo github.com/armbian/${{ inputs.repository }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url size updatedAt -d, | sort | (
         while read -r line; do
@@ -54,7 +54,7 @@ runs:
                out_size=$(echo "scale=0; $size/1024/1024" | bc -l)"M"
                echo -ne "${board_name}/${out_release^}_${out_branch}$([[ -n "${out_desktop}" ]] && echo "_")${out_desktop}_nightly|$url|"$(date -d $updated +"%s")"|$out_size|\n"
             fi
-        done) > ${{ inputs.repository }}.json
+        done) > json/${{ inputs.repository }}.json
         ls -l
         pwd
 
@@ -65,5 +65,5 @@ runs:
         host: 'users.armbian.com'
         privateKey: ${{ inputs.key }}
         dryRun: false
-        localDir: '.'
+        localDir: 'json/'
         remoteDir: 'images'
