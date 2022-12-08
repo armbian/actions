@@ -5,6 +5,12 @@ inputs:
   repository:
     description: Repository
     required: true
+  KEY_TORRENTS:
+    description: key
+    required: true
+  KNOWN_HOSTS_UPLOAD:
+    description: knowfile
+    required: true
 runs:
   using: "composite"
   steps:
@@ -49,3 +55,10 @@ runs:
                echo -ne "${board_name}/${out_release^}_${out_branch}$([[ -n "${out_desktop}" ]] && echo "_")${out_desktop}_nightly|$url|"$(date -d $updated +"%s")"|$out_size|\n"
             fi
         done)
+
+      - name: Install SSH key for storage
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ inputs.KEY_TORRENTS }}
+          known_hosts: ${{ inputs.KNOWN_HOSTS_UPLOAD }}
+          if_key_exists: replace
