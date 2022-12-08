@@ -19,7 +19,7 @@ runs:
 
         function listings
         {
-          cd community
+          
           gh release view --json assets 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url size updatedAt -d, | sort | grep $3 | (
           while read -r line; do
                   name=$(echo $line | cut -d"," -f1 | awk '{print tolower($0)}')
