@@ -5,6 +5,9 @@ inputs:
   repository:
     description: Repository
     required: true
+  filename:
+    description: Filename
+    required: false
   key:
     description: key
     required: true
@@ -42,7 +45,9 @@ runs:
         mkdir -p json
         sudo npm install --location=global json || true
         [[ -n "${{ inputs.grep }}" ]] && GREP=" grep ${{ inputs.grep }} | "
-        COMMAND="gh release view --json assets --repo github.com/armbian/${{ inputs.repository }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;\$d' | json -ga name url size updatedAt -d, | sort | $GREP "
+        [[ -z "${{ inputs.filename }}" ]] && FILENAME="${{ inputs.repository }}"
+        
+        COMMAND="gh release view --json assets --repo github.com/armbian/\${{ inputs.repository }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;\$d' | json -ga name url size updatedAt -d, | sort | $GREP "
         eval $COMMAND | (while read -r line; do
             name=$(echo $line | cut -d"," -f1 | awk '{print tolower($0)}')
             url=$(echo $line | cut -d"," -f2)
@@ -57,10 +62,10 @@ runs:
                out_desktop=$(echo $name | cut -d"_" -f7- | cut -d"." -f1 | cut -d"_" -f1)
                out_size=$(echo "scale=0; $size/1024/1024" | bc -l)"M"
                echo -ne "${board_name}/${out_release^}_${out_branch}$([[ -n "${out_desktop}" ]] && echo "_")${out_desktop}_nightly|$url|"$(date -d $updated +"%s")"|$out_size|\n" \
-               >> json/${{ inputs.repository }}.json
+               >> json/${FILENAME}.json
                out_desktop=${out_desktop:-cli}
                echo -ne "| [$BOARD_NAME]($url#$board_name) | [:file_folder:]($url".asc") | [:file_folder:]($url".sha") | $out_release | $out_branch | $out_desktop | $out_size | $out_kernel |\n" \
-               >> json/${{ inputs.repository }}.md
+               >> json/${FILENAME}.md
             fi
         done)        
 
