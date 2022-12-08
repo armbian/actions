@@ -2,8 +2,8 @@ name: "Make JSON from releases"
 author: "Igor Pecovnik"
 description: "Make JSON from releases"
 inputs:
-  choice:
-    filename: Filename
+  filename:
+    description: Filename
     required: true
 runs:
   using: "composite"
