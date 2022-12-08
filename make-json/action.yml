@@ -44,8 +44,8 @@ runs:
 
         mkdir -p json
         sudo npm install --location=global json || true
-        PARA1=$(echo ${{ inputs.grep }}) | cut -d" " -f1
-        PARA2=$(echo ${{ inputs.grep }}) | cut -d" " -f2
+        PARA1=$(echo ${{ inputs.grep }} | cut -d" " -f1)
+        PARA2=$(echo ${{ inputs.grep }} | cut -d" " -f2)
         [[ $PARA1 == $PARA2 ]] && unset $PARA1
         [[ -n "${{ inputs.grep }}" ]] && GREP=" | grep $PARA1 \""$(echo $PARA2 | sed 's/,/\\|/g')"\""
         [[ -z "${{ inputs.filename }}" ]] && FILENAME="${{ inputs.repository }}" || FILENAME="${{ inputs.filename }}"
