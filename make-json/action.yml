@@ -55,6 +55,8 @@ runs:
                echo -ne "${board_name}/${out_release^}_${out_branch}$([[ -n "${out_desktop}" ]] && echo "_")${out_desktop}_nightly|$url|"$(date -d $updated +"%s")"|$out_size|\n"
             fi
         done) > ${{ inputs.repository }}.json
+        ls -l
+        pwd
 
     - name: Install SSH key for storage
       uses: shimataro/ssh-key-action@v2
@@ -68,6 +70,6 @@ runs:
       run: |
 
         [[ -z $(command -v sshfs) ]] && sudo apt-get -yy install lftp
-        #sudo mkdir -p /root/.ssh/
-        #sudo cp ~/.ssh/known_hosts /root/.ssh/
+        ls -l
+        pwd
         lftp -u upload, -e "set net:timeout 4;set net:max-retries 6;mirror --Remove-source-files -R --no-empty-dirs --parallel=8 --no-perms $(pwd)/${{ inputs.repository }}.json images ;bye" sftp://users.armbian.com
