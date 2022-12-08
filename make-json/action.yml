@@ -65,6 +65,21 @@ runs:
         known_hosts: ${{ inputs.known_hosts }}
         if_key_exists: replace
 
+    - name: Deploy files via SFTP
+      uses: pressidium/lftp-mirror-action@v1
+      with:
+        # SFTP credentials
+        host: users.armbian.com
+        user: upload
+        onlyNewer: true
+        settings: 'sftp:auto-confirm=yes'
+        # Mirror command options
+        localDir: '.'
+        remoteDir: 'images'
+        reverse: true
+        ignoreFile: '.lftp_ignore'
+        options: '--verbose'
+
     - name: Upload file
       shell: bash      
       run: |
@@ -72,4 +87,4 @@ runs:
         [[ -z $(command -v sshfs) ]] && sudo apt-get -yy install lftp
         ls -l
         pwd
-        lftp -u upload, -e "mirror $(pwd)/${{ inputs.repository }}.json images ;bye" sftp://users.armbian.com
+        #lftp -u upload, -e "mirror $(pwd)/${{ inputs.repository }}.json images ;bye" sftp://users.armbian.com
