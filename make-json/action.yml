@@ -72,4 +72,4 @@ runs:
         [[ -z $(command -v sshfs) ]] && sudo apt-get -yy install lftp
         ls -l
         pwd
-        lftp -u upload, -e "set net:timeout 4;set net:max-retries 6;mirror --no-perms $(pwd)/${{ inputs.repository }}.json images ;bye" sftp://users.armbian.com
+        lftp -u upload, -e "mirror $(pwd)/${{ inputs.repository }}.json images ;bye" sftp://users.armbian.com
