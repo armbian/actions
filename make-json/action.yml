@@ -11,6 +11,9 @@ inputs:
   known_hosts:
     description: knowfile
     required: true
+  grep:
+    description: grep
+    required: false
 runs:
   using: "composite"
   steps:
@@ -37,8 +40,9 @@ runs:
       run: |
 
         mkdir -p json
-        sudo npm install --location=global json || true        
-        gh release view --json assets --repo github.com/armbian/${{ inputs.repository }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url size updatedAt -d, | sort | (
+        sudo npm install --location=global json || true
+        [[ -n "${{ inputs.grep }}" ]] && GREP=" grep ${{ inputs.repository }} | "
+        gh release view --json assets --repo github.com/armbian/${{ inputs.repository }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url size updatedAt -d, | sort | ${GREP} (
         while read -r line; do
             name=$(echo $line | cut -d"," -f1 | awk '{print tolower($0)}')
             url=$(echo $line | cut -d"," -f2)
