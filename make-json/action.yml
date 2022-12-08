@@ -5,10 +5,10 @@ inputs:
   repository:
     description: Repository
     required: true
-  KEY_TORRENTS:
+  key:
     description: key
     required: true
-  KNOWN_HOSTS_UPLOAD:
+  hosts:
     description: knowfile
     required: true
 runs:
@@ -56,3 +56,9 @@ runs:
             fi
         done)
 
+      - name: Install SSH key for storage
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ inputs.key }}
+          known_hosts: ${{ inputs.secrets }}
+          if_key_exists: replace
