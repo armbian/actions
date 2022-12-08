@@ -8,7 +8,7 @@ inputs:
   key:
     description: key
     required: true
-  hosts:
+  known_hosts:
     description: knowfile
     required: true
 runs:
@@ -60,5 +60,5 @@ runs:
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ inputs.key }}
-          known_hosts: ${{ inputs.secrets }}
+          known_hosts: ${{ inputs.known_hosts }}
           if_key_exists: replace
