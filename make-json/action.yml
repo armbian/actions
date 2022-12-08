@@ -66,4 +66,4 @@ runs:
         privateKey: ${{ inputs.key }}
         dryRun: false
         localDir: 'json/'
-        remoteDir: 'images'
+        remoteDir: 'json'
