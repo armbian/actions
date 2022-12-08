@@ -13,5 +13,7 @@
 ```
 
 repository = armbian/$repository
+
 filename = its $repository if not defined
+
 grep = [-v] key1,key2,... # -v = for excluding
