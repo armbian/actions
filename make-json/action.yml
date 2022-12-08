@@ -1,6 +1,10 @@
 name: "Make JSON from releases"
 author: "Igor Pecovnik"
 description: "Make JSON from releases"
+inputs:
+  choice:
+    filename: Filename
+    required: true
 runs:
   using: "composite"
   steps:
@@ -9,5 +13,6 @@ runs:
       shell: bash      
       run: |
 
+        echo ${{ inputs.filename }}
         sudo npm install --location=global json || true
         gh release list | awk '{print $1}'
