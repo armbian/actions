@@ -37,7 +37,7 @@ runs:
         function listings
         {
           
-        gh release view --json assets --repo github.com/armbian/${{ inputs.filename }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url size updatedAt -d, | sort | grep $3 | (
+        gh release view --json assets --repo github.com/armbian/${{ inputs.repository }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url size updatedAt -d, | sort | grep $3 | (
         while read -r line; do
             name=$(echo $line | cut -d"," -f1 | awk '{print tolower($0)}')
             url=$(echo $line | cut -d"," -f2)
