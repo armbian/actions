@@ -58,12 +58,10 @@ runs:
         ls -l
         pwd
 
-    - name: deploy file to server
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+    - name: SFTP uploader
+      uses: wangyucode/sftp-upload-action@v1.4.8
       with:
-        username: 'upload'
-        server: 'users.armbian.com'
-        ssh_private_key: '${{ inputs.key }}'
-        local_path: './*.json'
-        remote_path: 'images'
-        sftpArgs: '-o ConnectTimeout=5'
+        host: 'users.armbian.com'
+        privateKey: ${{ inputs.key }} 
+        localDir: '.'
+        remoteDir: 'images'
