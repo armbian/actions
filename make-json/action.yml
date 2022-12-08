@@ -18,6 +18,7 @@ runs:
         clean: false
 
     - name: Checkout ${{ inputs.repository }} repository
+      if: ${{ inputs.repository != 'build' }}
       uses: actions/checkout@v3.1.0
       with:
         fetch-depth: 1
