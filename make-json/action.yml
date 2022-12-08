@@ -2,12 +2,28 @@ name: "Make JSON from releases"
 author: "Igor Pecovnik"
 description: "Make JSON from releases"
 inputs:
-  filename:
-    description: Filename
+  repository:
+    description: Repository
     required: true
 runs:
   using: "composite"
   steps:
+
+    - name: Checkout build repository
+      uses: actions/checkout@v3.1.0
+      with:
+        fetch-depth: 1
+        repository: armbian/build
+        path: build
+        clean: false
+
+    - name: Checkout ${{ inputs.repository }} repository
+      uses: actions/checkout@v3.1.0
+      with:
+        fetch-depth: 1
+        repository: armbian/${{ inputs.repository }}
+        path: ${{ inputs.repository }}
+        clean: false
 
     - name: Install dependencies
       shell: bash      
