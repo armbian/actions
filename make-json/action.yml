@@ -37,15 +37,15 @@ runs:
         function listings
         {
           
-          gh release view --json assets 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url size updatedAt -d, | sort | grep $3 | (
-          while read -r line; do
-                  name=$(echo $line | cut -d"," -f1 | awk '{print tolower($0)}')
-                  url=$(echo $line | cut -d"," -f2)
-                  size=$(echo $line | cut -d"," -f3)
-                  updated=$(echo $line | cut -d"," -f4)
+        gh release view --json assets --repo github.com/armbian/${{ inputs.filename }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;$d' | json -ga name url size updatedAt -d, | sort | grep $3 | (
+        while read -r line; do
+            name=$(echo $line | cut -d"," -f1 | awk '{print tolower($0)}')
+            url=$(echo $line | cut -d"," -f2)
+            size=$(echo $line | cut -d"," -f3)
+            updated=$(echo $line | cut -d"," -f4)
                     if [[ "${name: -3}" == ".xz" ]]; then
                       board_name=$(echo $name | cut -d"_" -f3)
-                      source ../build/config/boards/$board_name.*
+                      source build/config/boards/$board_name.*
                       out_release=$(echo $name | cut -d"_" -f4)
                       out_branch=$(echo $name | cut -d"_" -f5)
                       out_kernel=$(echo $name | cut -d"_" -f6-7 | cut -d"." -f1-3 | cut -d"_" -f1)
