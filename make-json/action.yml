@@ -63,7 +63,7 @@ runs:
       with:
         username: 'upload'
         server: 'users.armbian.com'
-        ssh_private_key: ${{ inputs.key }}
+        ssh_private_key: '${{ inputs.key }}'
         local_path: './*.json'
         remote_path: 'images'
         sftpArgs: '-o ConnectTimeout=5'
