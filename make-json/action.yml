@@ -52,11 +52,13 @@ runs:
                out_kernel=$(echo $name | cut -d"_" -f6-7 | cut -d"." -f1-3 | cut -d"_" -f1)
                out_desktop=$(echo $name | cut -d"_" -f7- | cut -d"." -f1 | cut -d"_" -f1)
                out_size=$(echo "scale=0; $size/1024/1024" | bc -l)"M"
-               echo -ne "${board_name}/${out_release^}_${out_branch}$([[ -n "${out_desktop}" ]] && echo "_")${out_desktop}_nightly|$url|"$(date -d $updated +"%s")"|$out_size|\n"
+               echo -ne "${board_name}/${out_release^}_${out_branch}$([[ -n "${out_desktop}" ]] && echo "_")${out_desktop}_nightly|$url|"$(date -d $updated +"%s")"|$out_size|\n" \
+               >> json/${{ inputs.repository }}.json
+               out_desktop=${out_desktop:-cli}
+               echo -ne "| [$BOARD_NAME]($url#$board_name) | [:file_folder:]($url".asc") | [:file_folder:]($url".sha") | $out_release | $out_branch | $out_desktop | $out_size | $out_kernel |\n" \
+               >> json/${{ inputs.repository }}.md
             fi
-        done) > json/${{ inputs.repository }}.json
-        ls -l
-        pwd
+        done)
 
     - name: SFTP uploader
       uses: wangyucode/sftp-upload-action@v1.4.8
