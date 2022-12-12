@@ -27,6 +27,9 @@ runs:
         sudo mountpoint -q ${{ github.workspace }}/build/output/debs && sudo umount ${{ github.workspace }}/build/output/debs || true
         sudo mountpoint -q ${{ github.workspace }}/build/output/debs-beta && sudo umount ${{ github.workspace }}/build/output/debs-beta || true
         
+        # fix permission
+        sudo chown -R ${USER}.${USER} ${{ github.workspace }}/build/output/
+        
         # them remove what we don't need
         sudo rm -rf ${{ github.workspace }}/build/cache/ || true
         
