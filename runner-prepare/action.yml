@@ -16,6 +16,7 @@ runs:
         sudo apt-get -y --allow-unauthenticated upgrade || true
         sudo apt-get -y --allow-unauthenticated autoremove || true
         fi
+        sudo apt-get -y --allow-unauthenticated install buildtorrent
 
     - name: Clean folders
       shell: bash      
