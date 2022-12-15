@@ -46,6 +46,7 @@ runs:
         sudo rm -rf changes 2>/dev/null || true
         
         # remove all but current
+        PROJECT=$(echo ${{ github.workspace }} | rev | cut -d"/" -f2- | rev)
         cd ..
         cd ..
-        sudo find $(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev) -mindepth 1 -maxdepth 1 ! -name "_*" -exec sudo rm -rf {} + || true       
+        sudo find $(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev) -mindepth 1 -maxdepth 1 ! -name "_*" ! -name ${PROJECT} -exec sudo rm -rf {} + || true       
