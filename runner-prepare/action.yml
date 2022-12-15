@@ -26,7 +26,9 @@ runs:
         sudo mountpoint -q ${{ github.workspace }}/build/cache/toolchain && sudo umount ${{ github.workspace }}/build/cache/toolchain || true
         sudo mountpoint -q ${{ github.workspace }}/build/output/debs && sudo umount ${{ github.workspace }}/build/output/debs || true
         sudo mountpoint -q ${{ github.workspace }}/build/output/debs-beta && sudo umount ${{ github.workspace }}/build/output/debs-beta || true
-        
+        sudo mountpoint -q ${{ github.workspace }}/build/cache/rootfs && sudo umount ${{ github.workspace }}/build/cache/rootfs || true
+        sudo mountpoint -q ${{ github.workspace }}/build/cache/rootfs.upload && sudo umount ${{ github.workspace }}/build/cache/rootfs.upload || true
+                
         # fix permission
         sudo chown -R ${USER}.${USER} ${{ github.workspace }}/build/output/ || true
         
