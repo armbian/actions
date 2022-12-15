@@ -10,17 +10,13 @@ runs:
       run: |
 
         # unath should be removed asap
-        if [[ $(curl -s http://ifconfig.me) == "93.103.15.56" ]]; then
-        sudo rm -f /etc/apt/sources.list.d/githubcli.list
-        while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do sleep 1; done
-        sudo apt-get -y --allow-unauthenticated update || true
-        while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do sleep 1; done
-        sudo apt-get -y --allow-unauthenticated upgrade || true
-        while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do sleep 1; done
-        sudo apt-get -y --allow-unauthenticated autoremove || true
-        fi
-        while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do sleep 1; done
-        sudo apt-get -y --allow-unauthenticated install buildtorrent
+        #if [[ $(curl -s http://ifconfig.me) == "93.103.15.56" ]]; then
+        #sudo rm -f /etc/apt/sources.list.d/githubcli.list        
+        #sudo apt-get -y --allow-unauthenticated update || true        
+        #sudo apt-get -y --allow-unauthenticated upgrade || true
+        #sudo apt-get -y --allow-unauthenticated autoremove || true
+        #sudo apt-get -y --allow-unauthenticated install buildtorrent
+        #fi
 
     - name: Clean folders
       shell: bash      
