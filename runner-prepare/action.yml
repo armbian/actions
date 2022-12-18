@@ -45,6 +45,7 @@ runs:
         
         # remove all but current
         PROJECT=$(echo ${{ github.workspace }} | rev | cut -d'/' -f 1 | rev)
+        echo "PR ${{ github.workspace }}"
         cd ..
         cd ..
         sudo find . -maxdepth 4 -name "toolchain" -exec sudo umount {} + || true
