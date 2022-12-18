@@ -47,4 +47,5 @@ runs:
         PROJECT=$(echo ${{ github.workspace }} | rev | cut -d'/' -f 1 | rev)
         cd ..
         cd ..
-        sudo find $(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev) -mindepth 1 -maxdepth 1 ! -name "_*" ! -name ${PROJECT} -exec sudo rm -rf {} + || true       
+        sudo find . -maxdepth 4 -name "toolchain" -exec sudo umount {} + || true
+        sudo find $(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev) -mindepth 1 -maxdepth 1 ! -name "_*" ! -name ${PROJECT} -exec sudo rm -rf {} + || true
