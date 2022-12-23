@@ -1,0 +1,30 @@
+name: "Generic SSH trigger"
+author: "Igor Pecovnik"
+description: "Trigger actions via SSH"
+inputs:
+  KEY:
+    required: true
+  KNOWN_HOSTS:
+    required: true
+  USER:
+    required: true
+  HOST:
+    required: true
+runs:
+  using: "composite"
+  steps:
+
+    - name: Install SSH key for repository
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ inputs.KEY }}
+        name: key
+        known_hosts: ${{ inputs.KNOWN_HOSTS }}
+        if_key_exists: replace
+
+    - name: Run remote command
+      if: ${{ github.repository_owner == 'Armbian' }}
+      shell: bash
+      run: |
+
+        ssh -T -i ~/.ssh/key ${{ inputs.USER }}@${{ inputs.HOST }}
