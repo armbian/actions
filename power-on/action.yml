@@ -28,4 +28,4 @@ runs:
       run: |
 
         ssh -T -i ~/.ssh/poweron ${{ inputs.USER_REPOSITORY }}@${{ inputs.HOST_REPOSITORY }}
-        sleep 2m # Sleep for 3m to make sure switches were booted up
+        sleep 3m # Sleep for 3m to make sure switches were booted up
