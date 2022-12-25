@@ -23,10 +23,11 @@ runs:
       run: |
 
         # umount all our mounts
+        echo ${{ github.workspace }}
         sudo mountpoint -q ${{ github.workspace }}/build/cache/utility && sudo umount ${{ github.workspace }}/build/cache/utility || true
         sudo mountpoint -q ${{ github.workspace }}/build/cache/toolchain && sudo umount ${{ github.workspace }}/build/cache/toolchain || true
-        sudo mountpoint -q ${{ github.workspace }}/build/output/debs && sudo umount ${{ github.workspace }}/build/output/debs || true
-        sudo mountpoint -q ${{ github.workspace }}/build/output/debs-beta && sudo umount ${{ github.workspace }}/build/output/debs-beta || true
+        sudo mountpoint -q ${{ github.workspace }}/build/output/debs && sudo umount ${{ github.workspace }}/build/output/debs
+        sudo mountpoint -q ${{ github.workspace }}/build/output/debs-beta && sudo umount ${{ github.workspace }}/build/output/debs-beta
         sudo mountpoint -q ${{ github.workspace }}/build/cache/rootfs && sudo umount ${{ github.workspace }}/build/cache/rootfs
         sudo mountpoint -q ${{ github.workspace }}/build/cache/rootfs.upload && sudo umount ${{ github.workspace }}/build/cache/rootfs.upload
                 
