@@ -32,9 +32,7 @@ runs:
         sudo mountpoint -q ${{ github.workspace }}/build/cache/rootfs.upload && sudo umount ${{ github.workspace }}/build/cache/rootfs.upload
                 
         # fix permission
-        sudo chown -R ${USER}.${USER} ${{ github.workspace }}/build/output || true
-        sudo chown -R ${USER}.${USER} ${{ github.workspace }}/build/cache/sources || true
-        sudo chown -R ${USER}.${USER} ${{ github.workspace }}/build/cache/toolchain || true
+        sudo chown -R ${USER}.${USER} ${{ github.workspace }} || true
         
         # them remove what we don't need
         sudo rm -rf ${{ github.workspace }}/build/cache/ || true
