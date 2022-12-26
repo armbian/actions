@@ -30,6 +30,9 @@ runs:
         sudo mountpoint -q ${{ github.workspace }}/build/output/debs-beta && sudo umount ${{ github.workspace }}/build/output/debs-beta
         sudo mountpoint -q ${{ github.workspace }}/build/cache/rootfs && sudo umount ${{ github.workspace }}/build/cache/rootfs
         sudo mountpoint -q ${{ github.workspace }}/build/cache/rootfs.upload && sudo umount ${{ github.workspace }}/build/cache/rootfs.upload
+        #
+        sudo umount ${{ github.workspace }}/build/output/debs-beta || true
+        sudo umount ${{ github.workspace }}/build/output/debs || true
                 
         # fix permission
         sudo chown -R ${USER}.${USER} ${{ github.workspace }} || true
