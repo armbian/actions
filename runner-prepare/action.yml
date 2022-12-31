@@ -9,6 +9,9 @@ runs:
       shell: bash      
       run: |
 
+        echo ${{ github.runner }}
+        echo ${{ github.runner_arch }}
+
         # unath should be removed asap
         #if [[ $(curl -s http://ifconfig.me) == "93.103.15.56" ]]; then
         #sudo rm -f /etc/apt/sources.list.d/githubcli.list        
