@@ -26,8 +26,8 @@ runs:
         fi
         
         # fix docker permissions
-        sudo usermod -aG docker $USER || true
-        newgrp docker
+        #sudo usermod -aG docker $USER || true
+        #newgrp docker
 
     - name: Clean folders
       shell: bash      
