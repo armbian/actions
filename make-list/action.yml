@@ -80,6 +80,7 @@ runs:
               DESKTOP=$(cat build/config/boards/$board.* | grep HAS_VIDEO_OUTPUT || true)
               [[ -z "$(echo $KERNEL | grep $branch)" ]] && continue
               [[ -n "$(echo $DESKTOP | grep no)" && $desktop == desktop ]] && continue
+              [[ $branch == legacy && $board != orangepi5 ]] && continue
               [[ $branch == legacy && $board != rock-5b ]] && continue
               [[ $board == rpi4b && $release == sid ]] && continue
               [[ $board == uefi-riscv64 && $release == sid ]] && continue
