@@ -76,12 +76,12 @@ runs:
             fi
         done)        
 
-    - name: SFTP uploader
-      uses: wangyucode/sftp-upload-action@v1.4.8
-      with:
-        username: 'upload'
-        host: 'users.armbian.com'
-        privateKey: ${{ inputs.key }}
-        dryRun: false
-        localDir: 'json/'
-        remoteDir: 'json'
+#    - name: SFTP uploader
+#      uses: wangyucode/sftp-upload-action@v1.4.8
+#      with:
+#        username: 'upload'
+#        host: 'users.armbian.com'
+#        privateKey: ${{ inputs.key }}
+#        dryRun: false
+#        localDir: 'json/'
+#        remoteDir: 'json'
