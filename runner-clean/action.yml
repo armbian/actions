@@ -25,6 +25,6 @@ runs:
         run: |
 
           cd ../..
-          # remove all
+          PROJECT=$(echo ${{ github.workspace }} | rev | cut -d'/' -f 1 | rev)
           sudo find $(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev) \
-          -mindepth 1 -maxdepth 1 ! -name "_*" -exec sudo rm -rf {} + || true
+          -mindepth 1 -maxdepth 1 ! -name "_*" ! -name ${PROJECT} -exec sudo rm -rf {} + || true
