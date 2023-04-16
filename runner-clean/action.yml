@@ -9,7 +9,7 @@ runs:
         shell: bash 
         run: |
 
-          sudo docker image prune -a --force
+          sudo docker image prune -a --force || true
 
       - name: Upgrade
         shell: bash 
