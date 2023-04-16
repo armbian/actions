@@ -16,7 +16,7 @@ runs:
         run: |
 
           # install package aptdaemon
-          sudo aptdcon --safe-upgrade
+          sudo aptdcon -y --safe-upgrade
 
       - name: Remove Other projects
         shell: bash 
