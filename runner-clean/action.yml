@@ -6,17 +6,20 @@ runs:
   steps:
 
       - name: Remove dangling Docker images
+        shell: bash 
         run: |
 
           sudo docker image prune -a --force
 
       - name: Upgrade
+        shell: bash 
         run: |
 
           # install package aptdaemon
           sudo aptdcon --safe-upgrade
 
       - name: Remove Other projects
+        shell: bash 
         run: |
 
           cd ../..
