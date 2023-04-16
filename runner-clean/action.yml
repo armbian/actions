@@ -1,0 +1,25 @@
+name: "Runner clening"
+author: "Igor Pecovnik"
+description: "Cleaning self hosted runners"
+runs:
+  using: "composite"
+  steps:
+
+      - name: Remove dangling Docker images
+        run: |
+
+          sudo docker image prune -a --force
+
+      - name: Upgrade
+        run: |
+
+          # install package aptdaemon
+          sudo aptdcon --safe-upgrade
+
+      - name: Remove Other projects
+        run: |
+
+          cd ../..
+          # remove all
+          sudo find $(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev) \
+          -mindepth 1 -maxdepth 1 ! -name "_*" -exec sudo rm -rf {} + || true
