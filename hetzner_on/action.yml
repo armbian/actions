@@ -14,10 +14,6 @@ inputs:
   github_token:
     required: true
 
-env:
-  HCLOUD_TOKEN: ${{ inputs.hetzner_id }}
-  GH_TOKEN: ${{ inputs.github_token }}
-
 runs:
   using: "composite"
   steps:
@@ -35,6 +31,9 @@ runs:
         if_key_exists: replace
 
     - name: Install Homebrew
+      env:
+        HCLOUD_TOKEN: ${{ inputs.hetzner_id }}
+        GH_TOKEN: ${{ inputs.github_token }}
       shell: bash
       run: |
           sudo apt-get -y install wamerican
