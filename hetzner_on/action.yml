@@ -18,11 +18,6 @@ runs:
   using: "composite"
   steps:
 
-    - name: "Install dependencies ${{ inputs.machine-type }} ${{ inputs.machine-name }}"
-      shell: bash
-      run: |
-        echo "Install ${{ inputs.machine-type }} ${{ inputs.machine-name }}"
-
     - name: Install SSH key for storage
       uses: shimataro/ssh-key-action@v2
       with:
@@ -31,9 +26,6 @@ runs:
         if_key_exists: replace
 
     - name: Install Homebrew
-      env:
-        HCLOUD_TOKEN: ${{ inputs.hetzner_id }}
-        GH_TOKEN: ${{ inputs.github_token }}
       shell: bash
       run: |
           sudo apt-get -y install wamerican
@@ -41,9 +33,16 @@ runs:
           (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> ${HOME}/.bash_profile
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew install hcloud
-          
+
+    - name: Install Homebrew
+      env:
+        HCLOUD_TOKEN: ${{ inputs.hetzner_id }}
+        GH_TOKEN: ${{ inputs.github_token }}
+      shell: bash
+      run: |
+
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           # generate machine
-          #MACHINE_NAME=$(shuf -n1 /usr/share/dict/american-english | sed "s/[^[:alnum:]-]//g" | sed 's/./\L&/g')
-          #hcloud server create --name ${MACHINE_NAME} --image ubuntu-22.04 --type cax11 --ssh-key TORRENT
-          #sleep 30
+          hcloud server create --name ${machine-name} --image ubuntu-22.04 --type ${machine-type} --ssh-key TORRENT
+          sleep 30
           hcloud server list
