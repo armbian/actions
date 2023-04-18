@@ -5,6 +5,11 @@ inputs:
     required: true
   machine-type:
     required: true
+  key:
+    required: true
+  known_hosts:
+    required: true
+
 runs:
   using: "composite"
   steps:
@@ -17,8 +22,8 @@ runs:
     - name: Install SSH key for storage
       uses: shimataro/ssh-key-action@v2
       with:
-        key: ${{ secrets.KEY_TORRENTS }}
-        known_hosts: ${{ secrets.KNOWN_HOSTS_TORRENTS }}
+        key: ${{ inputs.key }}
+        known_hosts: ${{ inputs.known_hosts }}
         if_key_exists: replace
 
     - name: Install Homebrew
@@ -31,7 +36,7 @@ runs:
           brew install hcloud
           
           # generate machine
-          MACHINE_NAME=$(shuf -n1 /usr/share/dict/american-english | sed "s/[^[:alnum:]-]//g" | sed 's/./\L&/g')
-          hcloud server create --name ${MACHINE_NAME} --image ubuntu-22.04 --type cax11 --ssh-key TORRENT
-          sleep 30
-          hcloud server list
+          #MACHINE_NAME=$(shuf -n1 /usr/share/dict/american-english | sed "s/[^[:alnum:]-]//g" | sed 's/./\L&/g')
+          #hcloud server create --name ${MACHINE_NAME} --image ubuntu-22.04 --type cax11 --ssh-key TORRENT
+          #sleep 30
+          #hcloud server list
