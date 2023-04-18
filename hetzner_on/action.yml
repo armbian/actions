@@ -13,3 +13,24 @@ runs:
       shell: bash
       run: |
         echo "Install ${{ inputs.machine-type }} ${{ inputs.machine-name }}"
+
+    - name: Install SSH key for storage
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.KEY_TORRENTS }}
+        known_hosts: ${{ secrets.KNOWN_HOSTS_TORRENTS }}
+        if_key_exists: replace
+
+    - name: Install Homebrew
+      run: |
+          sudo apt-get -y install wamerican
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> ${HOME}/.bash_profile
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install hcloud
+          
+          # generate machine
+          MACHINE_NAME=$(shuf -n1 /usr/share/dict/american-english | sed "s/[^[:alnum:]-]//g" | sed 's/./\L&/g')
+          hcloud server create --name ${MACHINE_NAME} --image ubuntu-22.04 --type cax11 --ssh-key TORRENT
+          sleep 30
+          hcloud server list
