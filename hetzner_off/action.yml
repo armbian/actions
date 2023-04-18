@@ -1,0 +1,45 @@
+name: "Enable Hetzner VMs"
+author: "Igor Pecovnik"
+inputs:
+  machine-name:
+    required: true
+  machine-type:
+    required: true
+  key:
+    required: true
+  known_hosts:
+    required: true
+  hetzner_id:
+    required: true
+  github_token:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Install SSH key for storage
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ inputs.key }}
+        known_hosts: ${{ inputs.known_hosts }}
+        if_key_exists: replace
+
+    - name: Install Homebrew
+      shell: bash
+      run: |
+          sudo apt-get -y install wamerican
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> ${HOME}/.bash_profile
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install hcloud
+
+    - name: Install Homebrew
+      env:
+        HCLOUD_TOKEN: ${{ inputs.hetzner_id }}
+        GH_TOKEN: ${{ inputs.github_token }}
+      shell: bash
+      run: |
+
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          hcloud server delete $(hcloud server list | grep ${{ inputs.machine-name }})
