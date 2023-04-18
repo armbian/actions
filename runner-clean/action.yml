@@ -24,7 +24,9 @@ runs:
         shell: bash 
         run: |
 
+          while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do sleep 1; done;
           sudo DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 -yqq update
+          
           sudo DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 -yqq upgrade
           sudo DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 -yqq autoremove
           sudo DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 -yqq clean
