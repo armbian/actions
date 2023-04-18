@@ -6,6 +6,7 @@ runs:
   steps:
 
       - name: "Fix permissions"
+        shell: bash 
         run: |
           sudo chown -R $USER.$USER . || true
 
