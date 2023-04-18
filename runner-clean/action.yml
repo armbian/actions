@@ -5,6 +5,10 @@ runs:
   using: "composite"
   steps:
 
+      - name: "Fix permissions"
+        run: |
+          sudo chown -R $USER.$USER . || true
+
       - name: Remove dangling Docker images
         shell: bash 
         run: |
