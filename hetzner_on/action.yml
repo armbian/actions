@@ -46,4 +46,4 @@ runs:
           #MACHINE_NAME=$(shuf -n1 /usr/share/dict/american-english | sed "s/[^[:alnum:]-]//g" | sed 's/./\L&/g')
           #hcloud server create --name ${MACHINE_NAME} --image ubuntu-22.04 --type cax11 --ssh-key TORRENT
           #sleep 30
-          #hcloud server list
+          hcloud server list
