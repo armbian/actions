@@ -41,8 +41,12 @@ runs:
       shell: bash
       run: |
 
+          COMMAND="git clone https://github.com/armbian/scripts; cd scripts/generate-runners; ./deploy.sh"
+
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           # generate machine
           hcloud server create --name ${{ inputs.machine-name }} --image ubuntu-22.04 --type ${{ inputs.machine-type }} --ssh-key TORRENT
           sleep 30
-          hcloud server list
+          IP=$(hcloud server list --output columns=ipv4,name | grep ${{ inputs.machine-name }} | cut -d" " -f1)
+          ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${IP}"
+          ssh -o StrictHostKeyChecking=no root@${IP} "export GH_TOKEN=${{ env.GH_TOKEN }}; $COMMAND"
