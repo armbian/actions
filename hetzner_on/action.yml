@@ -5,6 +5,8 @@ inputs:
     required: true
   machine-type:
     required: true
+  runners-count:
+    required: true
   key:
     required: true
   known_hosts:
@@ -49,4 +51,4 @@ runs:
           sleep 30
           IP=$(hcloud server list --output columns=ipv4,name | grep ${{ inputs.machine-name }} | cut -d" " -f1)
           ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${IP}"
-          ssh -o StrictHostKeyChecking=no root@${IP} "export NAME=${{ inputs.machine-name }} GH_TOKEN=${{ env.GH_TOKEN }}; $COMMAND"
+          ssh -o StrictHostKeyChecking=no root@${IP} "export STOP=${{ inputs.runners-count}} NAME=${{ inputs.machine-name }} GH_TOKEN=${{ env.GH_TOKEN }}; $COMMAND"
