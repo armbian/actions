@@ -9,7 +9,7 @@ runs:
         if: ${{ env.RUNNER_USER != runner }}
         shell: bash 
         run: |
-          env
+        
           sudo chown -R $USER.$USER . || true
 
       - name: Remove dangling Docker images
