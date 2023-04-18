@@ -43,6 +43,6 @@ runs:
 
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           # generate machine
-          hcloud server create --name ${machine-name} --image ubuntu-22.04 --type ${machine-type} --ssh-key TORRENT
+          hcloud server create --name ${{ inputs.machine-name }} --image ubuntu-22.04 --type ${{ inputs.machine-type }} --ssh-key TORRENT
           sleep 30
           hcloud server list
