@@ -5,6 +5,8 @@ inputs:
     required: true
   machine-type:
     required: true
+  runners-count:
+    required: true
   key:
     required: true
   known_hosts:
