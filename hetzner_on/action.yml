@@ -1,19 +1,15 @@
 name: "Enable Hetzner VMs"
 author: "Igor Pecovnik"
 inputs:
-  KEY_POWER_ON:
+  machine-name:
     required: true
-  KNOWN_HOSTS_REPOSITORY:
-    required: true
-  USER_REPOSITORY:
-    required: true
-  HOST_REPOSITORY:
+  machine-type:
     required: true
 runs:
   using: "composite"
   steps:
 
-    - name: "Install dependencies"      
+    - name: "Install dependencies ${{ inputs.machine-type }} ${{ inputs.machine-name }}"
       shell: bash
       run: |
-        echo "Install"
+        echo "Install ${{ inputs.machine-type }} ${{ inputs.machine-name }}"
