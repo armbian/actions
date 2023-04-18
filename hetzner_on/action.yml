@@ -28,7 +28,7 @@ runs:
     - name: Install Homebrew
       shell: bash
       run: |
-          sudo apt-get -y install wamerican
+
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> ${HOME}/.bash_profile
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
