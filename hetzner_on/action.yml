@@ -22,6 +22,7 @@ runs:
         if_key_exists: replace
 
     - name: Install Homebrew
+      shell: bash
       run: |
           sudo apt-get -y install wamerican
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
