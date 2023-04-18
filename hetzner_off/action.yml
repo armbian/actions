@@ -42,4 +42,4 @@ runs:
       run: |
 
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          hcloud server delete $(hcloud server list --output columns=id | tail -1)
+          hcloud server delete $(hcloud server list --output columns=id | grep ${{ inputs.machine-name }} | tail -1)
