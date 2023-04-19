@@ -1,9 +1,9 @@
 name: "Enable Hetzner VMs"
 author: "Igor Pecovnik"
 inputs:
-  machine-name:
-    required: true
   machine-type:
+    required: true
+  machine-count:
     required: true
   runners-count:
     required: true
@@ -46,9 +46,16 @@ runs:
           COMMAND="git clone https://github.com/armbian/scripts; cd scripts/generate-runners; ./deploy.sh"
 
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          # generate machine
-          hcloud server create --name ${{ inputs.machine-name }} --image ubuntu-22.04 --type ${{ inputs.machine-type }} --ssh-key TORRENT
-          sleep 30
-          IP=$(hcloud server list --output columns=ipv4,name | grep ${{ inputs.machine-name }} | cut -d" " -f1)
-          ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${IP}"
-          ssh -o StrictHostKeyChecking=no root@${IP} "export STOP=${{ inputs.runners-count}} NAME=${{ inputs.machine-name }} GH_TOKEN=${{ env.GH_TOKEN }}; $COMMAND"
+
+          # we will use fixed machine names.
+          machinenames=("Faerie" "November" "Raven" "Hammer" "Foxtrot" "Papa" "Chimera" "Panther")
+          for machinename in "${machinenames[@]}"
+          do
+              hcloud server create --name ${machinename} --image ubuntu-22.04 --type ${{ inputs.machine-type }} --ssh-key TORRENT
+              sleep 30
+              IP=$(hcloud server list --output columns=ipv4,name | grep ${machinename} | cut -d" " -f1)
+              ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${IP}" || true
+              ssh -o StrictHostKeyChecking=no root@${IP} "export STOP=${{ inputs.runners-count}} NAME=${machinename} GH_TOKEN=${{ env.GH_TOKEN }}; $COMMAND"
+              i=$(( i + 1 ))
+              [[ $i == ${{ inputs.machine-count }} ]] && break
+          done

@@ -1,9 +1,9 @@
 name: "Enable Hetzner VMs"
 author: "Igor Pecovnik"
 inputs:
-  machine-name:
-    required: true
   machine-type:
+    required: true
+  machine-count:
     required: true
   runners-count:
     required: true
@@ -43,5 +43,12 @@ runs:
       shell: bash
       run: |
 
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          hcloud server delete $(hcloud server list --output columns=id,name | grep ${{ inputs.machine-name }} | cut -d" " -f1)
+          # we will use fixed machine names.
+          machinenames=("Faerie" "November" "Raven" "Hammer" "Foxtrot" "Papa" "Chimera" "Panther")
+          for machinename in "${machinenames[@]}"
+          do
+              eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+              hcloud server delete $(hcloud server list --output columns=id,name | grep ${machinename} | cut -d" " -f1)
+              i=$(( i + 1 ))
+              [[ $i == ${{ inputs.machine-count }} ]] && break
+          done
