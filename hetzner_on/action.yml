@@ -51,8 +51,18 @@ runs:
           machinenames=("Faerie" "November" "Raven" "Hammer" "Foxtrot" "Papa" "Chimera" "Panther")
           for machinename in "${machinenames[@]}"
           do
+              hcloud server delete $(hcloud server list --output columns=id,name | grep ${machinename} | cut -d" " -f1) || true
               hcloud server create --name ${machinename} --image ubuntu-22.04 --type ${{ inputs.machine-type }} --ssh-key TORRENT
-              sleep 30
+              i=$(( i + 1 ))
+              [[ $i == ${{ inputs.machine-count }} ]] && break
+          done
+
+          # make sure all are up
+          sleep 20
+
+          i=0
+          for machinename in "${machinenames[@]}"
+          do
               IP=$(hcloud server list --output columns=ipv4,name | grep ${machinename} | cut -d" " -f1)
               ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${IP}" || true
               ssh -o StrictHostKeyChecking=no root@${IP} "export STOP=${{ inputs.runners-count}} NAME=${machinename} GH_TOKEN=${{ env.GH_TOKEN }}; $COMMAND"
