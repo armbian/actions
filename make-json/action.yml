@@ -2,6 +2,9 @@ name: "Make JSON from releases"
 author: "Igor Pecovnik"
 description: "Make JSON from releases"
 inputs:
+  owner:
+    description: Owner
+    required: true
   repository:
     description: Repository
     required: true
@@ -28,7 +31,7 @@ runs:
       uses: actions/checkout@v3.1.0
       with:
         fetch-depth: 1
-        repository: ${{ inputs.repository }}
+        repository: ${{ inputs.owner }}/${{ inputs.repository }}
         path: ${{ inputs.repository }}
         clean: false
 
@@ -47,7 +50,7 @@ runs:
         truncate json/${FILENAME}.json --size=0 || true
         truncate json/${FILENAME}.md --size=0 || true
         
-        COMMAND="gh release view --json assets --repo github.com/\${{ inputs.repository }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;\$d' | json -ga name url size updatedAt -d, | sort $GREP "
+        COMMAND="gh release view --json assets --repo github.com/${{ inputs.owner }}/\${{ inputs.repository }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;\$d' | json -ga name url size updatedAt -d, | sort $GREP "
 
         eval $COMMAND | (while read -r line; do
             name=$(echo $line | cut -d"," -f1 | awk '{print tolower($0)}')
