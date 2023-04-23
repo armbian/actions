@@ -8,12 +8,6 @@ inputs:
   filename:
     description: Filename
     required: false
-  key:
-    description: key
-    required: true
-  known_hosts:
-    description: knowfile
-    required: true
   grep:
     description: grep
     required: false
@@ -74,14 +68,4 @@ runs:
                echo -ne "| [$BOARD_NAME]($url#$board_name) | [:file_folder:]($url".asc") | [:file_folder:]($url".sha") | $out_release | $out_branch | $out_desktop | $out_size | $out_kernel |\n" \
                >> json/${FILENAME}.md
             fi
-        done)        
-
-#    - name: SFTP uploader
-#      uses: wangyucode/sftp-upload-action@v1.4.8
-#      with:
-#        username: 'upload'
-#        host: 'users.armbian.com'
-#        privateKey: ${{ inputs.key }}
-#        dryRun: false
-#        localDir: 'json/'
-#        remoteDir: 'json'
+        done)
