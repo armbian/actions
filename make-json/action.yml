@@ -34,7 +34,7 @@ runs:
       uses: actions/checkout@v3.1.0
       with:
         fetch-depth: 1
-        repository: armbian/${{ inputs.repository }}
+        repository: ${{ inputs.repository }}
         path: ${{ inputs.repository }}
         clean: false
 
