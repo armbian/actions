@@ -12,6 +12,8 @@ runs:
         
           sudo chown -R $USER:$USER build/cache/{memoize,oci,tools,pip,aptcache,pip,sources/evalcache,sources/oh-my-zsh} || true
           sudo chown -R $USER:$USER cache/{memoize,oci,tools,pip,aptcache,pip,sources/evalcache,sources/oh-my-zsh} || true
+          sudo rm -f build/lib/tools/common/__pycache__/bash_declare_parser.cpython-310.pyc || true
+          sudo rm -f lib/tools/common/__pycache__/bash_declare_parser.cpython-310.pyc || true
 
       - name: Remove dangling Docker images
         if: ${{ env.RUNNER_USER != runner }}
