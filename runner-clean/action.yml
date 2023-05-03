@@ -10,7 +10,8 @@ runs:
         shell: bash 
         run: |
         
-          sudo chown -R $USER.$USER . || true
+          sudo chown -R $USER:$USER build/cache/{memoize,oci,tools,pip,aptcache,pip,sources/evalcache,sources/oh-my-zsh} || true
+          sudo chown -R $USER:$USER cache/{memoize,oci,tools,pip,aptcache,pip,sources/evalcache,sources/oh-my-zsh} || true
 
       - name: Remove dangling Docker images
         if: ${{ env.RUNNER_USER != runner }}
