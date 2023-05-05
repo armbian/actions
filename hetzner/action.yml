@@ -100,16 +100,12 @@ runs:
         eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
         machinenames=("Faerie" "November" "Raven" "Hammer" "Foxtrot" "Papa" "Chimera" "Panther")
         machinename="${machinenames[${{ inputs.machine-id }}]}"
-        hcloud server create --name ${machinename} --image ubuntu-22.04 --type ${{ inputs.machine-type }} --ssh-key TORRENT
-
-        # make sure all are up
-        sleep 30
-
-        IP=$(hcloud server list --output columns=ipv4,name | grep ${machinename} | cut -d" " -f1)
-        ssh -o StrictHostKeyChecking=no root@${IP} "\
-        export STOP=${{ inputs.runners-count}} NAME=${machinename} GH_TOKEN=${{ env.GH_TOKEN }}; \
-        git clone https://github.com/armbian/scripts; cd scripts/generate-runners; ./deploy.sh"
-
+        echo -e '#!/bin/bash\n\
+        export STOP=${{ inputs.runners-count}} NAME=${machinename} GH_TOKEN=${{ env.GH_TOKEN }}\n\
+        git clone https://github.com/armbian/scripts\ncd scripts/generate-runners\n\
+        ./deploy.sh" | \
+        hcloud server create --name ${machinename} --image ubuntu-22.04 --type ${{ inputs.machine-type }} --ssh-key TORRENT --user-data-from-file -
+        
     - name: Remove runners
       if: ${{ inputs.action-type == 'disable' }}
       env:
