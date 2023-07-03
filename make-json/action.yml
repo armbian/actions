@@ -2,18 +2,15 @@ name: "Make JSON from releases"
 author: "Igor Pecovnik"
 description: "Make JSON from releases"
 inputs:
+  owner:
+    description: Owner
+    required: true
   repository:
     description: Repository
     required: true
   filename:
     description: Filename
     required: false
-  key:
-    description: key
-    required: true
-  known_hosts:
-    description: knowfile
-    required: true
   grep:
     description: grep
     required: false
@@ -34,7 +31,7 @@ runs:
       uses: actions/checkout@v3.1.0
       with:
         fetch-depth: 1
-        repository: armbian/${{ inputs.repository }}
+        repository: ${{ inputs.owner }}/${{ inputs.repository }}
         path: ${{ inputs.repository }}
         clean: false
 
@@ -58,7 +55,7 @@ runs:
         truncate json/${FILENAME}.json --size=0 || true
         truncate json/${FILENAME}.md --size=0 || true
         
-        COMMAND="gh release view --json assets --repo github.com/armbian/\${{ inputs.repository }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;\$d' | json -ga name url size updatedAt -d, | sort $GREP "
+        COMMAND="gh release view --json assets --repo github.com/${{ inputs.owner }}/\${{ inputs.repository }} 2>/dev/null | python3 -mjson.tool | sed  '1,2d;\$d' | json -ga name url size updatedAt -d, | sort $GREP "
 
         eval $COMMAND | (while read -r line; do
             name=$(echo $line | cut -d"," -f1 | awk '{print tolower($0)}')
@@ -79,14 +76,4 @@ runs:
                echo -ne "| [$BOARD_NAME]($url#$board_name) | [:file_folder:]($url".asc") | [:file_folder:]($url".sha") | $out_release | $out_branch | $out_desktop | $out_size | $out_kernel |\n" \
                >> json/${FILENAME}.md
             fi
-        done)        
-
-#    - name: SFTP uploader
-#      uses: wangyucode/sftp-upload-action@v1.4.8
-#      with:
-#        username: 'upload'
-#        host: 'users.armbian.com'
-#        privateKey: ${{ inputs.key }}
-#        dryRun: false
-#        localDir: 'json/'
-#        remoteDir: 'json'
+        done)
