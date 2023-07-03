@@ -42,6 +42,11 @@ runs:
       shell: bash      
       run: |
 
+        function enable_extension()
+        {
+        return 0
+        }
+
         mkdir -p json
         sudo npm install --location=global json || true
         PARA1=$(echo ${{ inputs.grep }} | cut -d" " -f1)
