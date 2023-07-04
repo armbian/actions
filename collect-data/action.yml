@@ -1,0 +1,11 @@
+name: "Collect data"
+author: "Igor Pecovnik"
+description: ""
+runs:
+  using: "composite"
+  steps:
+
+      - name: "DMESG"
+        shell: bash 
+        run: |
+          ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "dmesg --color=always"
