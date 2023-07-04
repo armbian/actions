@@ -5,8 +5,7 @@ runs:
   using: "composite"
   steps:
 
-      - name: "Collecing"
-        timeout-minutes: 3
+      - name: "Collecing"        
         shell: bash 
         run: |
         
