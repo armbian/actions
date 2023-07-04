@@ -5,7 +5,23 @@ runs:
   using: "composite"
   steps:
 
-      - name: "DMESG"
+      - name: "Collecing"
+        timeout-minutes: 3
         shell: bash 
         run: |
-          ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "dmesg --color=always"
+        
+          ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "run-parts /etc/update-motd.d/" || true
+          ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "dmesg --color=always" || true
+          ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "dpkg --configure -a; apt-get -y install binutils iperf3 neofetch datamash p7zip-full" || true
+          ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "neofetch" || true
+
+          while :
+          do
+            IPERF=$(timeout 1000 ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "iperf3 -c 10.0.40.2 -t 5 -J 2>/dev/null | jq '.intervals[] .sum .bits_per_second' | LC_ALL=C datamash median 1 | cut -d"-" -f2" | LC_ALL=C awk '{$1/=1048576;printf "%.0f\n",$1}')
+            if [[ -n "${IPERF}" ]] ; then
+              echo "IPERF=${IPERF}" >> $GITHUB_ENV
+              break
+            fi
+            echo "The server is busy running a test"
+            sleep 2
+          done
