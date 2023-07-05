@@ -5,6 +5,13 @@ runs:
   using: "composite"
   steps:
 
+      - name: "Remove JSON files"
+        if: ${{ env.RUNNER_USER != runner }}
+        shell: bash 
+        run: |
+   
+          rm -rf JSON *.json
+
       - name: "Fix permissions"
         if: ${{ env.RUNNER_USER != runner }}
         shell: bash 
