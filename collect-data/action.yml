@@ -32,6 +32,16 @@ runs:
               echo "SEVENZIP=${SEVENZIP}" >> $GITHUB_ENV
             fi
 
+      - name: "Read kernel and U-boot"
+        shell: bash         
+        run: |
+
+          echo "KERNEL=$(ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "uname -r" || true)" >> $GITHUB_ENV
+          # read u-boot
+          root_uuid=$(ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "sed -e 's/^.*root=//' -e 's/ .*$//' < /proc/cmdline" || true)
+          root_partition_device=$(ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "blkid | tr -d '\":' | grep \"${root_uuid}\" | awk '{print \$1}' | rev | cut -c3- | rev" || true)
+          echo "UBOOT=$(ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "dd status=none if=${root_partition_device} count=5000 | strings | grep armbian | grep U-Boot | tail -1 | grep -P \"[0-9]{4}.[0-9]{2}\" -o")" >> $GITHUB_ENV
+
       - name: "Collecing"
         shell: bash 
         run: |
@@ -41,6 +51,8 @@ runs:
           {
             "dut_ip" : "${{ env.DUT_IP }}",
             "board_name" : "${{ env.BOARD_NAME }}",
+            "u-boot" : "${{ env.UBOOT }}",
+            "kernel" : "${{ env.KERNEL }}",
             "iperf" : "${{ env.IPERF }}",
             "sevenzip" : "${{ env.SEVENZIP }}",
             "armbian_monitor" : "${ARMBIAN_MONITOR}",
