@@ -47,7 +47,7 @@ runs:
         shell: bash 
         run: |
 
-          ARMBIAN_MONITOR=$(armbianmonitor -u | grep -Eo 'https://[^ >]+')
+          ARMBIAN_MONITOR=$(ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "armbianmonitor -u | grep -Eo 'https://[^ >]+'" || true)
           cat <<- EOD >> data-"${{ env.DUT_IP }}"-"${{ env.DUT_SLUG }}"-"${{ inputs.kernel_target }}".json
           {
             "dut_ip" : "${{ env.DUT_IP }}",
