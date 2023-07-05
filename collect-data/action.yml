@@ -8,7 +8,7 @@ runs:
   using: "composite"
   steps:
 
-      - name: Iperf
+      - name: "Iperf test"
         shell: bash 
         run: |
 
@@ -23,8 +23,8 @@ runs:
             sleep 2
           done
 
-      - name: 7Zip
-        if: ${{ github.repository_owner == 'Armbian' && env.PROCEED == 'true' }}
+      - name: "7Zip benchmark"
+        shell: bash         
         run: |
 
             SEVENZIP=$(timeout 1000 ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "7z b | grep 'Tot:' | awk '{print \$NF}'")
