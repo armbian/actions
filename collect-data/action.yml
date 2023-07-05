@@ -28,6 +28,20 @@ runs:
             sleep 2
           done
 
+      - name: Iperf
+        run: |
+
+          while :
+          do
+            IPERF=$(timeout 1000 ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "iperf3 -c 10.0.40.2 -t 5 -J 2>/dev/null | jq '.intervals[] .sum .bits_per_second' | LC_ALL=C datamash median 1 | cut -d"-" -f2" | LC_ALL=C awk '{$1/=1048576;printf "%.0f\n",$1}')
+            if [[ -n "${IPERF}" ]] ; then
+              echo "IPERF=${IPERF}" >> $GITHUB_ENV
+              break
+            fi
+            echo "The server is busy running a test"
+            sleep 2
+          done
+
       - name: "Collecing"
         shell: bash 
         run: |
@@ -37,6 +51,7 @@ runs:
           {
             "dut_ip" : "${{ env.DUT_IP }}",
             "board_name" : "${{ env.BOARD_NAME }}",
+            "iperf" : "${{ env.IPERF }}",
             "armbian_monitor" : "${ARMBIAN_MONITOR}",
             "kernel_target" : "${{ inputs.kernel-target }}"
           },
