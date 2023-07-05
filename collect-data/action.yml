@@ -35,6 +35,7 @@ runs:
           {
             "dut_ip" : "${{ env.DUT_IP }}",
             "board_name" : "${{ env.BOARD_NAME }}",
+            "armbian_monitor" : "$(armbianmonitor -u | grep -Eo 'https://[^ >]+')",
             "kernel_target" : "${{ inputs.kernel_target }}"
           },
           EOD
