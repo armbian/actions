@@ -31,12 +31,14 @@ runs:
       - name: "Collecing"
         shell: bash 
         run: |
+
+          ARMBIAN_MONITOR=$(armbianmonitor -u | grep -Eo 'https://[^ >]+')
           cat <<- EOD >> data-"${{ env.DUT_IP }}"-"${{ env.DUT_SLUG }}"-"${{ inputs.kernel_target }}".json
           {
             "dut_ip" : "${{ env.DUT_IP }}",
             "board_name" : "${{ env.BOARD_NAME }}",
-            "armbian_monitor" : "$(armbianmonitor -u | grep -Eo 'https://[^ >]+')",
-            "kernel_target" : "${{ inputs.kernel_target }}"
+            "armbian_monitor" : "${ARMBIAN_MONITOR}",
+            "kernel_target" : "${{ inputs.kernel-target }}"
           },
           EOD
       
@@ -44,4 +46,4 @@ runs:
         uses: actions/upload-artifact@v3
         with:
           name: JSON
-          path: data*.*
+          path: data-*.*
