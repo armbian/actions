@@ -23,6 +23,15 @@ runs:
             sleep 2
           done
 
+      - name: 7Zip
+        if: ${{ github.repository_owner == 'Armbian' && env.PROCEED == 'true' }}
+        run: |
+
+            SEVENZIP=$(timeout 1000 ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "7z b | grep 'Tot:' | awk '{print \$NF}'")
+            if [[ -n "${SEVENZIP}" ]] ; then
+              echo "SEVENZIP=${SEVENZIP}" >> $GITHUB_ENV
+            fi
+
       - name: "Collecing"
         shell: bash 
         run: |
@@ -33,6 +42,7 @@ runs:
             "dut_ip" : "${{ env.DUT_IP }}",
             "board_name" : "${{ env.BOARD_NAME }}",
             "iperf" : "${{ env.IPERF }}",
+            "sevenzip" : "${{ env.SEVENZIP }}",
             "armbian_monitor" : "${ARMBIAN_MONITOR}",
             "kernel_target" : "${{ inputs.kernel-target }}"
           },
