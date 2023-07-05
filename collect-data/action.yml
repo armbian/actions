@@ -31,7 +31,7 @@ runs:
       - name: "Collecing"
         shell: bash 
         run: |
-          cat <<- EOD >> json
+          cat <<- EOD >> data.json
           {
             "dut_ip" : "${{ env.DUT_IP }}",
             "board_name" : "${{ env.BOARD_NAME }}",
@@ -42,4 +42,4 @@ runs:
       - name: Upload JSON
         uses: actions/upload-artifact@v3
         with:
-          name: json
+          path: data.json
