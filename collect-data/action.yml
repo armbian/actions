@@ -37,7 +37,7 @@ runs:
         run: |
 
           ARMBIAN_MONITOR=$(ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "armbianmonitor -u | grep -Eo 'https://[^ >]+'" || true)
-          cat <<- EOD >> data-"${{ env.DUT_IP }}"-"${{ env.DUT_SLUG }}"-"${{ inputs.kernel_target }}".json
+          cat <<- EOD >> data-"${{ env.DUT_IP }}"-"${{ env.DUT_SLUG }}.json
           {
             "dut_ip" : "${{ env.DUT_IP }}",
             "board_name" : "${{ env.BOARD_NAME }}",
