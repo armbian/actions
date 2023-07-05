@@ -1,11 +1,14 @@
 name: "Collect data"
 author: "Igor Pecovnik"
+inputs:
+  kernel_target:
+    required: true
 description: ""
 runs:
   using: "composite"
   steps:
 
-      - name: "Collecing"        
+      - name: "Collecing"
         shell: bash 
         run: |
         
@@ -24,3 +27,19 @@ runs:
             echo "The server is busy running a test"
             sleep 2
           done
+
+      - name: "Collecing"
+        shell: bash 
+        run: |
+          cat <<- EOD >> json
+          {
+            "dut_ip" : "${{ env.DUT_IP }}",
+            "board_name" : "${{ env.BOARD_NAME }}",
+            "kernel_target" : "${{ inputs.kernel_target }}"
+          },
+          EOD
+      
+      - name: Upload JSON
+        uses: actions/upload-artifact@v3
+        with:
+          name: json
