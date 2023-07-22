@@ -47,7 +47,7 @@ runs:
         run: |
 
           STARTED=$(date +%s)
-          ARMBIAN_MONITOR=$(ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "armbianmonitor -u | grep -Eo 'https://[^ >]+'" || true)
+          ARMBIAN_MONITOR=$(ssh -i /tmp/${{ env.RANDOM }} -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "armbianmonitor -u | grep -Eo 'https://[^ >]+'" | head -1 || true)
           cat <<- EOD >> data-"${{ env.DUT_IP }}"-"${{ env.DUT_SLUG }}".parts
           {
             "started" : "${STARTED}",
