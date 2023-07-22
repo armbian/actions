@@ -53,6 +53,7 @@ runs:
             "started" : "${STARTED}",
             "dut_ip" : "${{ env.DUT_IP }}",
             "board_name" : "${{ env.BOARD_NAME }}",
+            "board_slug" : "${{ env.DUT_SLUG }}",
             "u-boot" : "${{ env.UBOOT }}",
             "kernel" : "${{ env.KERNEL }}",
             "iperf" : "${{ env.IPERF }}",
