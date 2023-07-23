@@ -10,7 +10,7 @@ runs:
         shell: bash 
         run: |
    
-          rm -rf JSON *.json
+          rm -rf JSON *.json *.tmp *.parts
 
       - name: "Fix permissions"
         if: ${{ env.RUNNER_USER != runner }}
