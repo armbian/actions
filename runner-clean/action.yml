@@ -7,10 +7,17 @@ runs:
 
       - name: "Remove JSON files"
         if: ${{ env.RUNNER_USER != runner }}
-        shell: bash 
+        shell: bash
         run: |
-   
+
           rm -rf JSON *.json *.tmp *.parts
+
+      - name: "Remove output folder"
+        if: ${{ env.RUNNER_USER != runner }}
+        shell: bash
+        run: |
+
+          rm -rf output/{images,debs,debs-beta}
 
       - name: "Fix permissions"
         if: ${{ env.RUNNER_USER != runner }}
