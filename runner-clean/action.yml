@@ -10,14 +10,14 @@ runs:
         shell: bash
         run: |
 
-          rm -rf JSON *.json *.tmp *.parts
+          sudo rm -rf JSON *.json *.tmp *.parts
 
       - name: "Remove output folder"
         if: ${{ env.RUNNER_USER != runner }}
         shell: bash
         run: |
 
-          rm -rf output/{images,debs,debs-beta}
+          sudo rm -rf output/{images,debs,debs-beta}/*
 
       - name: "Fix permissions"
         if: ${{ env.RUNNER_USER != runner }}
