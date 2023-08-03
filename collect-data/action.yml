@@ -46,7 +46,7 @@ runs:
         shell: bash 
         run: |
 
-          STARTED=$(date +%s)
+          STARTED=$(date -u +"%Y-%m-%d %H:%M:%S")
           ARMBIAN_MONITOR=$(ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "armbianmonitor -u | grep -Eo 'https://[^ >]+'" | head -1 || true)
           cat <<- EOD >> data-"${{ env.DUT_IP }}"-"${{ env.DUT_SLUG }}".parts
           {
