@@ -14,7 +14,7 @@ runs:
         shell: bash 
         run: |
 
-          if [[ "{{ inputs.STATUS }}" != "notfound" ]]; then
+          if [[ "${{ inputs.STATUS }}" != "notfound" ]]; then
           while :
           do
             IPERF=$(timeout 1000 ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "iperf3 -c 10.0.40.2 -t 5 -J 2>/dev/null | jq '.intervals[] .sum .bits_per_second' | LC_ALL=C datamash median 1 | cut -d"-" -f2" | LC_ALL=C awk '{$1/=1048576;printf "%.0f\n",$1}')
@@ -31,7 +31,7 @@ runs:
         shell: bash         
         run: |
 
-            if [[ "{{ inputs.STATUS }}" != "notfound" ]]; then
+            if [[ "${{ inputs.STATUS }}" != "notfound" ]]; then
             SEVENZIP=$(timeout 1000 ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "7z b | grep 'Tot:' | awk '{print \$NF}'")
             if [[ -n "${SEVENZIP}" ]] ; then
               echo "SEVENZIP=${SEVENZIP}" >> $GITHUB_ENV
@@ -42,7 +42,7 @@ runs:
         shell: bash         
         run: |
 
-          if [[ "{{ inputs.STATUS }}" != "notfound" ]]; then
+          if [[ "${{ inputs.STATUS }}" != "notfound" ]]; then
           echo "KERNEL=$(ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "uname -r" || true)" >> $GITHUB_ENV
           # read u-boot
           root_uuid=$(ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "sed -e 's/^.*root=//' -e 's/ .*$//' < /proc/cmdline" || true)
@@ -54,6 +54,6 @@ runs:
         shell: bash 
         run: |
 
-          if [[ "{{ inputs.STATUS }}" != "notfound" ]]; then
+          if [[ "${{ inputs.STATUS }}" != "notfound" ]]; then
           echo "ARMBIAN_MONITOR=$(ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "armbianmonitor -u | grep -Eo 'https://[^ >]+'" | head -1 || true)" >> $GITHUB_ENV
           fi
