@@ -94,6 +94,7 @@ runs:
           kernel-target: legacy
 
       - name: Set output
+        if: always()
         id: value
         shell: bash 
         run:
