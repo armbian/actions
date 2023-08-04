@@ -122,7 +122,7 @@ runs:
             "board_name" : "${{ inputs.BOARD_NAME }}",
             "board_slug" : "${{ inputs.DUT_SLUG }}",
             "u-boot" : "${{ env.UBOOT || 'n/a' }}",
-            "kernel" : "${{ env.KERNEL || '${{ env.STATUS }}' }}",
+            "kernel" : "${{ env.KERNEL || 'n/a' }}",
             "iperf" : "${{ env.IPERF || 'n/a' }}",
             "sevenzip" : "${{ env.SEVENZIP || 'n/a' }}",
             "armbian_monitor" : "${{ env.ARMBIAN_MONITOR || 'n/a' }}",
