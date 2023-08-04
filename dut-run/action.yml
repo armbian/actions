@@ -88,10 +88,10 @@ runs:
              if nc -z "${{ inputs.DUT_IP }}" 22 -w 15 2>/dev/null; then break; fi
           done
 
-      - name: Collect data
-        uses: armbian/actions/collect-data@main
-        with:
-          kernel-target: legacy
+      #- name: Collect data
+      #  uses: armbian/actions/collect-data@main
+      #  with:
+      #    kernel-target: legacy
 
       - name: Set output
         if: always()
