@@ -89,10 +89,10 @@ runs:
           done
           if [ $secs -eq 0 ]; then echo "STATUS=timeout" >> $GITHUB_ENV; fi
 
-      #- name: Collect data
-      #  uses: armbian/actions/collect-data@main
-      #  with:
-      #    STATUS: {{ env.STATUS }}
+      - name: Collect data
+        uses: armbian/actions/collect-data@main
+        with:
+          STATUS: {{ env.STATUS }}
 
       - name: Set output
         if: always()
