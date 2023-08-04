@@ -7,6 +7,8 @@ inputs:
     required: true
 outputs:
   status:
+    description: "Exit status"
+    value: ${{ steps.value.outputs.status }}
 description: "DUT runner"
 runs:
   using: "composite"
@@ -63,6 +65,7 @@ runs:
           kernel-target: legacy
 
       - name: Set output
+        id: value
         shell: bash 
         run:
           echo "status=xxx" >> $GITHUB_OUTPUT
