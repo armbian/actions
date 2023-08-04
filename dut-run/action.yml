@@ -6,6 +6,10 @@ inputs:
     default: 'root'
   DUT_IP:
     required: true
+  DUT_SLUG:
+    required: true
+  BOARD_NAME:
+    required: true
   LINUXFAMILY:
     required: true
   BRANCH:
@@ -107,15 +111,15 @@ runs:
           cat <<- EOD >> data-"${{ inputs.DUT_IP }}"-"${{ inputs.DUT_SLUG }}".parts
           {
             "started" : "${STARTED}",
-            "dut_ip" : "${{ env.DUT_IP }}",
-            "board_name" : "${{ env.BOARD_NAME }}",
-            "board_slug" : "${{ env.DUT_SLUG }}",
+            "dut_ip" : "${{ inputs.DUT_IP }}",
+            "board_name" : "${{ inputs.BOARD_NAME }}",
+            "board_slug" : "${{ inputs.DUT_SLUG }}",
             "u-boot" : "${{ env.UBOOT }}",
             "kernel" : "${{ env.KERNEL }}",
             "iperf" : "${{ env.IPERF }}",
             "sevenzip" : "${{ env.SEVENZIP }}",
-            "armbian_monitor" : "${ARMBIAN_MONITOR}",
-            "kernel_target" : "${{ inputs.kernel-target }}"
+            "armbian_monitor" : "${{ env.ARMBIAN_MONITOR }}",
+            "kernel_target" : "${{ inputs.BRANCH }}"
           },
           EOD
       
