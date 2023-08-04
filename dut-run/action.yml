@@ -30,7 +30,7 @@ runs:
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
             
             # install new
-            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-image-${{ inputs.BRANCH }}-${{ env.LINUXFAMILY }}"
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
             
             echo "Install: linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
@@ -44,7 +44,7 @@ runs:
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
             
             # install new
-            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-image-${{ inputs.BRANCH }}-${{ env.LINUXFAMILY }}"
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
             
             echo "Install: linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
