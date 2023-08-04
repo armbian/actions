@@ -98,6 +98,33 @@ runs:
           STATUS: "${{ env.STATUS }}"
           DUT_IP: "${{ inputs.DUT_IP }}"
 
+      - name: Generate JSON
+        shell: bash 
+        run: |
+
+          STARTED=$(date -u +"%Y-%m-%d&nbsp;%H:%M:%S")
+          
+          cat <<- EOD >> data-"${{ inputs.DUT_IP }}"-"${{ inputs.DUT_SLUG }}".parts
+          {
+            "started" : "${STARTED}",
+            "dut_ip" : "${{ env.DUT_IP }}",
+            "board_name" : "${{ env.BOARD_NAME }}",
+            "board_slug" : "${{ env.DUT_SLUG }}",
+            "u-boot" : "${{ env.UBOOT }}",
+            "kernel" : "${{ env.KERNEL }}",
+            "iperf" : "${{ env.IPERF }}",
+            "sevenzip" : "${{ env.SEVENZIP }}",
+            "armbian_monitor" : "${ARMBIAN_MONITOR}",
+            "kernel_target" : "${{ inputs.kernel-target }}"
+          },
+          EOD
+      
+      - name: Upload JSON
+        uses: actions/upload-artifact@v3
+        with:
+          name: JSON
+          path: data-*.*
+
       - name: Set output
         if: always()
         id: value
