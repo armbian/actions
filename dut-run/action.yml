@@ -1,8 +1,11 @@
 name: "Run on DUT"
 author: "Igor Pecovnik"
 inputs:
-  DUT_IP:
+  DUT_USER:
     required: false
+    default: 'root'
+  DUT_IP:
+    required: true
   LINUXFAMILY:
     required: true
 outputs:
@@ -13,18 +16,17 @@ description: "DUT runner"
 runs:
   using: "composite"
   steps:
-
-      - name: "Iperf test"
+         
+      - name: "Check if kernel package exists"
         shell: bash 
         run: |
-          echo "Yes"
+
+          ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search linux-image-legacy-'${{ inputs.LINUXFAMILY }}'"
           
-      - name: "Remove any installed kernel and cleanup"
-        shell: bash 
-        run: |
+          #armbian-bsp-cli-${{ env.DUT_SLUG }}-legacy" || true
 
-          ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
-          ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-dtb-*'" || true
+          #ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
+          #ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-dtb-*'" || true
 
       - name: "Install linux-image-legacy-${{ env.LINUXFAMILY }}"
         shell: bash 
