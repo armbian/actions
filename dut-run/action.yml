@@ -29,6 +29,7 @@ runs:
   steps:
          
       - name: "Check if kernel package exists"
+        if: ${{ inputs.STATUS == '' }}
         shell: bash 
         run: |
 
@@ -85,6 +86,7 @@ runs:
           #ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search  armbian-plymouth-theme" || true           
 
       - name: Reboot
+        if: ${{ env.STATUS == '' }} 
         shell: bash 
         run: |
 
