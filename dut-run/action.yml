@@ -1,0 +1,71 @@
+name: "Run on DUT"
+author: "Igor Pecovnik"
+inputs:
+  DUT_IP:
+    required: false
+  LINUXFAMILY:
+    required: true
+outputs:
+  status:
+    required: true
+description: "DUT runner"
+runs:
+  using: "composite"
+  steps:
+
+      - name: "Iperf test"
+        shell: bash 
+        run: |
+
+      - name: "Remove any installed kernel and cleanup"
+        timeout-minutes: 10
+        if: ${{ github.repository_owner == 'Armbian' && env.PROCEED == 'true' }}
+        run: |
+
+          ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
+          ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt-get -y purge '^linux-dtb-*'" || true
+          rm -rf *.json
+
+      - name: "Install linux-image-legacy-${{ env.LINUXFAMILY }}"
+        timeout-minutes: 45
+        if: ${{ github.repository_owner == 'Armbian' && contains(env.KERNEL_TARGET, 'legacy') && env.PROCEED == 'true' }}
+        run: |
+
+           echo "${{ env.KERNEL_TARGET }}"
+           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt update ; apt -y upgrade" || true
+           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt install -y linux-image-legacy-${{ env.LINUXFAMILY }}" || true
+           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt install -y linux-dtb-legacy-${{ env.LINUXFAMILY }}" || true
+           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt install -y linux-headers-legacy-${{ env.LINUXFAMILY }}" || true
+           
+           # list other files
+           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt search  armbian-bsp-cli-${{ env.DUT_SLUG }}-legacy" || true
+           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt search  armbian-bsp-desktop-${{ env.DUT_SLUG }}-legacy" || true
+           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt search  armbian-zsh" || true
+           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt search  armbian-firmware-full" || true
+           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt search  armbian-plymouth-theme" || true           
+
+      - name: Reboot
+        timeout-minutes: 15
+        if: ${{ github.repository_owner == 'Armbian' && contains(env.KERNEL_TARGET, 'legacy') && env.PROCEED == 'true' }}
+        run: |
+
+          ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "shutdown --no-wall -r now" || true
+          while true
+          do
+              sleep 10
+              echo "Destination Host Unreachable"
+              if nc -z "${{ env.DUT_IP }}" 22 -w 15 2>/dev/null; then
+              break
+              fi
+          done
+
+      - name: Collect data
+        if: ${{ github.repository_owner == 'Armbian' && contains(env.KERNEL_TARGET, 'legacy') && env.PROCEED == 'true' }}
+        timeout-minutes: 15
+        uses: armbian/actions/collect-data@main
+        with:
+          kernel-target: legacy
+
+      - name: Set output
+        run:
+          echo "status=xxx" >> $GITHUB_OUTPUT
