@@ -121,11 +121,11 @@ runs:
             "dut_ip" : "${{ inputs.DUT_IP }}",
             "board_name" : "${{ inputs.BOARD_NAME }}",
             "board_slug" : "${{ inputs.DUT_SLUG }}",
-            "u-boot" : "${{ env.UBOOT }}",
-            "kernel" : "${{ env.KERNEL }}",
-            "iperf" : "${{ env.IPERF }}",
-            "sevenzip" : "${{ env.SEVENZIP }}",
-            "armbian_monitor" : "${{ env.ARMBIAN_MONITOR }}",
+            "u-boot" : "${{ env.UBOOT || 'n/a' }}",
+            "kernel" : "${{ env.KERNEL || '${{ env.STATUS }}' }}",
+            "iperf" : "${{ env.IPERF || 'n/a' }}",
+            "sevenzip" : "${{ env.SEVENZIP || 'n/a' }}",
+            "armbian_monitor" : "${{ env.ARMBIAN_MONITOR || 'n/a' }}",
             "kernel_target" : "${{ inputs.BRANCH }}"
           },
           EOD
