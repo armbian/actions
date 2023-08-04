@@ -97,7 +97,7 @@ runs:
           if [ $secs -eq 0 ]; then echo "STATUS=timeout" >> $GITHUB_ENV; fi
 
       - name: Collect data
-        #if: {{ env.STATUS == 'timeout' }}
+        if: ${{ env.STATUS == 'timeout' }}
         uses: armbian/actions/collect-data@main
         with:
           STATUS: "${{ env.STATUS }}"
@@ -112,6 +112,7 @@ runs:
           cat <<- EOD >> data-"${{ inputs.DUT_IP }}"-"${{ inputs.DUT_SLUG }}".parts
           {
             "started" : "${STARTED}",
+            "status" : "${{ env.STATUS }}",
             "dut_ip" : "${{ inputs.DUT_IP }}",
             "board_name" : "${{ inputs.BOARD_NAME }}",
             "board_slug" : "${{ inputs.DUT_SLUG }}",
