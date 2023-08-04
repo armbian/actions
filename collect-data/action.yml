@@ -44,29 +44,8 @@ runs:
           root_partition_device=$(ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "blkid | tr -d '\":' | grep \"${root_uuid}\" | awk '{print \$1}' | rev | cut -c3- | rev" || true)
           echo "UBOOT=$(ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "dd status=none if=${root_partition_device} count=5000 | strings | grep armbian | grep U-Boot | tail -1 | grep -P \"[0-9]{4}.[0-9]{2}\" -o")" >> $GITHUB_ENV
 
-      - name: "Collecing"
+      - name: "Armbianmonitor"
         shell: bash 
         run: |
 
-          STARTED=$(date -u +"%Y-%m-%d&nbsp;%H:%M:%S")
-          ARMBIAN_MONITOR=$(ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "armbianmonitor -u | grep -Eo 'https://[^ >]+'" | head -1 || true)
-          cat <<- EOD >> data-"${{ inputs.DUT_IP }}"-"${{ inputs.DUT_SLUG }}".parts
-          {
-            "started" : "${STARTED}",
-            "dut_ip" : "${{ env.DUT_IP }}",
-            "board_name" : "${{ env.BOARD_NAME }}",
-            "board_slug" : "${{ env.DUT_SLUG }}",
-            "u-boot" : "${{ env.UBOOT }}",
-            "kernel" : "${{ env.KERNEL }}",
-            "iperf" : "${{ env.IPERF }}",
-            "sevenzip" : "${{ env.SEVENZIP }}",
-            "armbian_monitor" : "${ARMBIAN_MONITOR}",
-            "kernel_target" : "${{ inputs.kernel-target }}"
-          },
-          EOD
-      
-      - name: Upload JSON
-        uses: actions/upload-artifact@v3
-        with:
-          name: JSON
-          path: data-*.*
+          echo "ARMBIAN_MONITOR=$(ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "armbianmonitor -u | grep -Eo 'https://[^ >]+'" | head -1 || true)" >> $GITHUB_ENV
