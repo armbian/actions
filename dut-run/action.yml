@@ -37,6 +37,7 @@ runs:
             
             echo "Install: linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
+            echo "STATUS=notfound" >> $GITHUB_ENV
             echo "Kernel for ${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }} does not exists" >> $GITHUB_STEP_SUMMARY
           fi
 
@@ -51,6 +52,7 @@ runs:
             
             echo "Install: linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
+            echo "STATUS=notfound" >> $GITHUB_ENV
             echo "DTB for ${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }} does not exists" >> $GITHUB_STEP_SUMMARY
           fi
 
@@ -65,7 +67,8 @@ runs:
             
             echo "Install: linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
-            echo "DTB for ${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }} does not exists" >> $GITHUB_STEP_SUMMARY
+            echo "STATUS=notfound" >> $GITHUB_ENV
+            echo "Headers for ${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }} does not exists" >> $GITHUB_STEP_SUMMARY
           fi
           
           # list other files
