@@ -95,7 +95,7 @@ runs:
       - name: Collect data
         uses: armbian/actions/collect-data@main
         with:
-          STATUS: {{ env.STATUS }}
+          STATUS: "{{ env.STATUS }}"
 
       - name: Set output
         if: always()
