@@ -86,7 +86,7 @@ runs:
         shell: bash 
         run: |
 
-          #ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "shutdown --no-wall -r now" || true
+          ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "shutdown --no-wall -r now" || true
           secs=${{ inputs.TIMEOUT }}
           while [ $secs -gt 0 ]; do
              echo -ne "$secs\033[0K\r"
@@ -94,9 +94,6 @@ runs:
              : $((secs--))
              if nc -z "${{ inputs.DUT_IP }}" 22 -w 15 2>/dev/null; then break; fi
           done
-
-
-          secs=0
           if [ $secs -eq 0 ]; then echo "STATUS=timeout" >> $GITHUB_ENV; fi
 
       - name: Collect data
