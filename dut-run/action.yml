@@ -7,7 +7,6 @@ inputs:
     required: true
 outputs:
   status:
-    required: true
 description: "DUT runner"
 runs:
   using: "composite"
