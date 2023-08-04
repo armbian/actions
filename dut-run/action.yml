@@ -10,6 +10,9 @@ inputs:
     required: true
   BRANCH:
     required: true
+  TIMEOUT:
+    required: false
+    default: 300
 outputs:
   status:
     description: "Exit status"
@@ -77,13 +80,12 @@ runs:
         run: |
 
           ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "shutdown --no-wall -r now" || true
-          while true
-          do
-              sleep 10
-              echo "Destination Host Unreachable"
-              if nc -z "${{ inputs.DUT_IP }}" 22 -w 15 2>/dev/null; then
-              break
-              fi
+          secs=${{ inputs.TIMEOUT }}
+          while [ $secs -gt 0 ]; do
+             echo -ne "$secs\033[0K\r"
+             sleep 1
+             : $((secs--))
+             if nc -z "${{ inputs.DUT_IP }}" 22 -w 15 2>/dev/null; then break; fi
           done
 
       - name: Collect data
