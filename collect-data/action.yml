@@ -11,6 +11,7 @@ runs:
   steps:
 
       - name: "Iperf test"
+        if: {{ inputs.STATUS != notfound }} 
         shell: bash 
         run: |
 
