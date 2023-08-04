@@ -16,7 +16,7 @@ inputs:
     required: true
   TIMEOUT:
     required: false
-    default: 300
+    default: 120
 outputs:
   status:
     description: "Exit status"
