@@ -96,6 +96,7 @@ runs:
         uses: armbian/actions/collect-data@main
         with:
           STATUS: "{{ env.STATUS }}"
+          DUT_IP: "{{ inputs.DUT_IP }}"
 
       - name: Set output
         if: always()
