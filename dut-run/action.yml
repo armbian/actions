@@ -8,6 +8,8 @@ inputs:
     required: true
   LINUXFAMILY:
     required: true
+  BRANCH:
+    required: true
 outputs:
   status:
     description: "Exit status"
@@ -21,12 +23,33 @@ runs:
         shell: bash 
         run: |
 
-          ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search linux-image-legacy-'${{ inputs.LINUXFAMILY }}'"
-          
-          #armbian-bsp-cli-${{ env.DUT_SLUG }}-legacy" || true
+          # check if kernel install is possible
+          if ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" 2>/dev/null | grep linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}; then
 
-          #ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
-          #ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-dtb-*'" || true
+            # purge previously installed ones
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
+            
+            # install new
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-image-${{ inputs.BRANCH }}-${{ env.LINUXFAMILY }}"
+            
+            echo "Install: linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Kernel for ${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }} does not exists" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # check if DTB install is possible
+          if ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" 2>/dev/null | grep linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}; then
+
+            # purge previously installed ones
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
+            
+            # install new
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-image-${{ inputs.BRANCH }}-${{ env.LINUXFAMILY }}"
+            
+            echo "Install: linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "DTB for ${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }} does not exists" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: "Install linux-image-legacy-${{ env.LINUXFAMILY }}"
         shell: bash 
