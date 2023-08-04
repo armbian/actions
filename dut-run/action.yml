@@ -16,16 +16,17 @@ runs:
       - name: "Iperf test"
         shell: bash 
         run: |
-
+          echo "Yes"
+          
       - name: "Remove any installed kernel and cleanup"
-        timeout-minutes: 10
+        shell: bash 
         run: |
 
           ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
           ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-dtb-*'" || true
 
       - name: "Install linux-image-legacy-${{ env.LINUXFAMILY }}"
-        timeout-minutes: 45
+        shell: bash 
         if: ${{ github.repository_owner == 'Armbian' && contains(env.KERNEL_TARGET, 'legacy') && env.PROCEED == 'true' }}
         run: |
 
@@ -43,7 +44,7 @@ runs:
            ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt search  armbian-plymouth-theme" || true           
 
       - name: Reboot
-        timeout-minutes: 15
+        shell: bash 
         if: ${{ github.repository_owner == 'Armbian' && contains(env.KERNEL_TARGET, 'legacy') && env.PROCEED == 'true' }}
         run: |
 
@@ -58,12 +59,11 @@ runs:
           done
 
       - name: Collect data
-        if: ${{ github.repository_owner == 'Armbian' && contains(env.KERNEL_TARGET, 'legacy') && env.PROCEED == 'true' }}
-        timeout-minutes: 15
         uses: armbian/actions/collect-data@main
         with:
           kernel-target: legacy
 
       - name: Set output
+        shell: bash 
         run:
           echo "status=xxx" >> $GITHUB_OUTPUT
