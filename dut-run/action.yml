@@ -41,45 +41,47 @@ runs:
           if ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" 2>/dev/null | grep linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}; then
 
             # purge previously installed ones
-            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-dtb-*'" || true
             
             # install new
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
             
-            echo "Install: linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
+            echo "Install: linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
             echo "DTB for ${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }} does not exists" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: "Install linux-image-legacy-${{ env.LINUXFAMILY }}"
-        shell: bash 
-        if: ${{ github.repository_owner == 'Armbian' && contains(env.KERNEL_TARGET, 'legacy') && env.PROCEED == 'true' }}
-        run: |
+          # check if headers install is possible
+          if ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" 2>/dev/null | grep linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}; then
 
-           echo "${{ env.KERNEL_TARGET }}"
-           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt update ; apt -y upgrade" || true
-           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt install -y linux-image-legacy-${{ env.LINUXFAMILY }}" || true
-           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt install -y linux-dtb-legacy-${{ env.LINUXFAMILY }}" || true
-           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt install -y linux-headers-legacy-${{ env.LINUXFAMILY }}" || true
-           
-           # list other files
-           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt search  armbian-bsp-cli-${{ env.DUT_SLUG }}-legacy" || true
-           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt search  armbian-bsp-desktop-${{ env.DUT_SLUG }}-legacy" || true
-           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt search  armbian-zsh" || true
-           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt search  armbian-firmware-full" || true
-           ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt search  armbian-plymouth-theme" || true           
+            # purge previously installed ones
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-headers-*'" || true
+            
+            # install new
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
+            
+            echo "Install: linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "DTB for ${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }} does not exists" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # list other files
+          #ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search  armbian-bsp-cli-${{ env.DUT_SLUG }}-legacy" || true
+          #ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search  armbian-bsp-desktop-${{ env.DUT_SLUG }}-legacy" || true
+          #ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search  armbian-zsh" || true
+          #ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search  armbian-firmware-full" || true
+          #ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search  armbian-plymouth-theme" || true           
 
       - name: Reboot
         shell: bash 
-        if: ${{ github.repository_owner == 'Armbian' && contains(env.KERNEL_TARGET, 'legacy') && env.PROCEED == 'true' }}
         run: |
 
-          ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "shutdown --no-wall -r now" || true
+          ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "shutdown --no-wall -r now" || true
           while true
           do
               sleep 10
               echo "Destination Host Unreachable"
-              if nc -z "${{ env.DUT_IP }}" 22 -w 15 2>/dev/null; then
+              if nc -z "${{ inputs.DUT_IP }}" 22 -w 15 2>/dev/null; then
               break
               fi
           done
