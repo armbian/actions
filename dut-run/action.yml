@@ -19,12 +19,10 @@ runs:
 
       - name: "Remove any installed kernel and cleanup"
         timeout-minutes: 10
-        if: ${{ github.repository_owner == 'Armbian' && env.PROCEED == 'true' }}
         run: |
 
-          ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
-          ssh -o StrictHostKeyChecking=no root@${{ env.DUT_IP }} "apt-get -y purge '^linux-dtb-*'" || true
-          rm -rf *.json
+          ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
+          ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-dtb-*'" || true
 
       - name: "Install linux-image-legacy-${{ env.LINUXFAMILY }}"
         timeout-minutes: 45
