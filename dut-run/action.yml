@@ -59,7 +59,11 @@ runs:
             
             echo "Install: linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
-            echo "STATUS=notfound" >> $GITHUB_ENV
+            # If DTB does not exists we don't set as some kernels don't have it
+            #
+            #echo "STATUS=notfound" >> $GITHUB_ENV
+            #
+            #
             echo "DTB for ${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }} does not exists" >> $GITHUB_STEP_SUMMARY
           fi
 
