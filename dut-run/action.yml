@@ -14,6 +14,8 @@ inputs:
     required: true
   BRANCH:
     required: true
+  REPOSITORY:
+    required: true
   STATUS:
     required: false
   TIMEOUT:
@@ -27,6 +29,14 @@ description: "DUT runner"
 runs:
   using: "composite"
   steps:
+
+      - name: "Select repository"
+        if: ${{ inputs.STATUS == '' }}
+        shell: bash 
+        run: |
+        
+          ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "sed -i 's/http:\/\/[^ ]*/http:\/\/${{ inputs.REPOSITORY }}/' /etc/apt/sources.list.d/armbian.list" || true
+          ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt update; dpkg --configure -a; apt-get -y install binutils iperf3 neofetch datamash p7zip-full" || true
          
       - name: "Check if kernel package exists"
         if: ${{ inputs.STATUS == '' }}
