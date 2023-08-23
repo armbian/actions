@@ -17,6 +17,7 @@ runs:
         shell: bash
         run: |
 
+          sudo rm -rf cache/rootfs/*
           sudo rm -rf output/{images,debs,debs-beta}/*
 
       - name: "Fix permissions"
