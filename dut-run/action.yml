@@ -32,15 +32,15 @@ runs:
 
       - name: "Select repository"
         if: ${{ inputs.STATUS == '' }}
-        shell: bash 
+        shell: bash
         run: |
-        
-          ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "sed -i 's/http:\/\/[^ ]*/http:\/\/${{ inputs.REPOSITORY }}/' /etc/apt/sources.list.d/armbian.list" || true
+
+          ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "sed -i 's|http:\/\/[^ ]*|http:\/\/${{ inputs.REPOSITORY }}|' /etc/apt/sources.list.d/armbian.list" || true
           ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt update; dpkg --configure -a; apt-get -y install binutils iperf3 neofetch datamash p7zip-full" || true
-         
+
       - name: "Check if kernel package exists"
         if: ${{ inputs.STATUS == '' }}
-        shell: bash 
+        shell: bash
         run: |
 
           # check if kernel install is possible
@@ -48,10 +48,10 @@ runs:
 
             # purge previously installed ones
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
-            
+
             # install new
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
-            
+
             echo "Install: linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
             echo "STATUS=notfound" >> $GITHUB_ENV
@@ -63,10 +63,10 @@ runs:
 
             # purge previously installed ones
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-dtb-*'" || true
-            
+
             # install new
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
-            
+
             echo "Install: linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
             # If DTB does not exists we don't set as some kernels don't have it
@@ -82,16 +82,16 @@ runs:
 
             # purge previously installed ones
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-headers-*'" || true
-            
+
             # install new
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
-            
+
             echo "Install: linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
             echo "STATUS=notfound" >> $GITHUB_ENV
             echo "Headers for ${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }} does not exists" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           # list other files
           #ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search  armbian-bsp-cli-${{ env.DUT_SLUG }}-legacy" || true
           #ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search  armbian-bsp-desktop-${{ env.DUT_SLUG }}-legacy" || true
@@ -100,8 +100,8 @@ runs:
           #ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search  armbian-plymouth-theme" || true           
 
       - name: Reboot
-        if: ${{ env.STATUS == '' }} 
-        shell: bash 
+        if: ${{ env.STATUS == '' }}
+        shell: bash
         run: |
 
           ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "shutdown --no-wall -r now" || true
@@ -123,11 +123,11 @@ runs:
           DUT_IP: "${{ inputs.DUT_IP }}"
 
       - name: Generate JSON
-        shell: bash 
+        shell: bash
         run: |
 
           STARTED=$(date -u +"%Y-%m-%d&nbsp;%H:%M:%S")
-          
+
           cat <<- EOD >> data-"${{ inputs.DUT_IP }}"-"${{ inputs.DUT_SLUG }}".parts
           {
             "started" : "${STARTED}",
@@ -143,7 +143,7 @@ runs:
             "kernel_target" : "${{ inputs.BRANCH }}"
           },
           EOD
-      
+
       - name: Upload JSON
         uses: actions/upload-artifact@v3
         with:
@@ -153,6 +153,6 @@ runs:
       - name: Set output
         if: always()
         id: value
-        shell: bash 
+        shell: bash
         run:
           echo "status={{ env.STATUS }}" >> $GITHUB_OUTPUT
