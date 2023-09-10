@@ -38,6 +38,14 @@ runs:
           ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "sed -i 's|http:\/\/[^ ]*|http:\/\/${{ inputs.REPOSITORY }}|' /etc/apt/sources.list.d/armbian.list" || true
           ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt update; dpkg --configure -a; apt-get -y install binutils iperf3 neofetch datamash p7zip-full" || true
 
+          if [ "${{ inputs.REPOSITORY }}" == "beta.armbian.com" ]; then 
+          echo "REPOSITORY=beta" >> $GITHUB_ENV
+          else
+          echo "REPOSITORY=stable" >> $GITHUB_ENV
+          fi
+        
+          
+
       - name: "Check if kernel package exists"
         if: ${{ inputs.STATUS == '' }}
         shell: bash
@@ -140,7 +148,8 @@ runs:
             "iperf" : "${{ env.IPERF || 'n/a' }}",
             "sevenzip" : "${{ env.SEVENZIP || 'n/a' }}",
             "armbian_monitor" : "${{ env.ARMBIAN_MONITOR || 'n/a' }}",
-            "kernel_target" : "${{ inputs.BRANCH }}"
+            "kernel_target" : "${{ inputs.BRANCH }}",
+            "repository" : "${{ env.REPOSITORY }}"
           },
           EOD
 
