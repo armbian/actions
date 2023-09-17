@@ -31,7 +31,7 @@ runs:
   using: "composite"
   steps:
 
-    - name: "Select repository"
+    - name: "Select repository ${{ inputs.failoverserver }}"
       shell: bash
       run: |
 
