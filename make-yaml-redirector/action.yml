@@ -65,7 +65,7 @@ runs:
 
             # failover
             if (( ${#SERVERS[@]} == 0 )); then
-            SERVERS=(www.armbian.com/${FILENAME})
+            SERVERS=(imola.armbian.com)
             fi
             
               for server in "${SERVERS[@]}"; do
