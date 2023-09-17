@@ -37,7 +37,7 @@ runs:
           FILENAME=${{ inputs.variant }}
           PORT=${{ inputs.port }}
           
-          cat <<- EOF >> dlrouter-${FILENAME}.yaml
+          cat <<- EOF > dlrouter-${FILENAME}.yaml
           #
           # ${FILENAME}.armbian.com
           #
@@ -66,10 +66,10 @@ runs:
             unset REGION LATITUDE LONGITUDE PHYSICAL TIME_ZONE UPLOAD
             # read virtual machine            
             COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" "https://stuff.armbian.com/netbox/api/virtualization/virtual-machines/${server_id}/" | jq)
-            IFS=',' read -r SITE_ID NAME DL_PATH_DEBS DL_PATH_IMAGES WEIGHT <<<$(echo $COMMAND | jq '.site.id,.name,.custom_fields["download_path_debs"],.custom_fields["download_path_images"],.custom_fields["weight"]' | sed 's/$/,/' | xargs)
+            IFS=', ' read -r SITE_ID NAME DL_PATH_DEBS DL_PATH_IMAGES WEIGHT <<<$(echo $COMMAND | jq '.site.id,.name,.custom_fields["download_path_debs"],.custom_fields["download_path_images"],.custom_fields["weight"]' | sed 's/$/,/' | xargs)
             # site data
             COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" "https://stuff.armbian.com/netbox/api/dcim/sites/${SITE_ID}/" | jq)
-            IFS=',' read REGION LATITUDE LONGITUDE PHYSICAL TIME_ZONE UPLOAD <<<$(echo $COMMAND | jq -r '.region.name,.latitude,.longitude,.physical_address,.time_zone,.custom_fields["upload_speed"]' | sed 's/$/,/' | xargs)
+            IFS=', ' read REGION LATITUDE LONGITUDE PHYSICAL TIME_ZONE UPLOAD <<<$(echo $COMMAND | jq -r '.region.name,.latitude,.longitude,.physical_address,.time_zone,.custom_fields["upload_speed"]' | sed 's/$/,/' | xargs)
             echo ""  >> dlrouter-${FILENAME}.yaml
             
           [[ -n $REGION ]] && echo "  # $TIME_ZONE - $UPLOAD Mbit/s" >> dlrouter-${FILENAME}.yaml
