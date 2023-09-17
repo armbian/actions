@@ -63,13 +63,13 @@ runs:
           servers:
           EOF
             echo "<pre>" >> $GITHUB_STEP_SUMMARY
-            SERVERS=($(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" \
-            "https://stuff.armbian.com/netbox/api/virtualization/virtual-machines/?limit=500&name__empty=false&status=active&device_role=Mirror&tag=${FILENAME}" | jq '.results[] | .name' 2> /dev/null | grep -v null | sed "s/\"//g" || true))
+            #SERVERS=($(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" \
+            #"https://stuff.armbian.com/netbox/api/virtualization/virtual-machines/?limit=500&name__empty=false&status=active&device_role=Mirror&tag=${FILENAME}" | jq '.results[] | .name' 2> /dev/null | grep -v null | sed "s/\"//g" || true))
 
             # failover
-            if (( ${#SERVERS[@]} == 0 )); then
+            #if (( ${#SERVERS[@]} == 0 )); then
             SERVERS=(${{ inputs.failoverserver }})
-            fi
+            #fi
             
               for server in "${SERVERS[@]}"; do
                 unset REGION LATITUDE LONGITUDE
