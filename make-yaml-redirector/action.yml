@@ -109,7 +109,7 @@ runs:
             cat dlrouter-${FILENAME}.yaml >> $GITHUB_STEP_SUMMARY
             echo "</pre>" >> $GITHUB_STEP_SUMMARY
 
-#      - uses: actions/upload-artifact@v3
-#        with:
-#          name: redirecor-config
-#          path: ${{ github.workspace }}/*.yaml
+    - uses: actions/upload-artifact@v3
+      with:
+        name: redirecor-config
+        path: ${{ github.workspace }}/*.yaml
