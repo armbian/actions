@@ -68,10 +68,10 @@ runs:
 
             # failover
             #if (( ${#SERVERS[@]} == 0 )); then
-            SERVERS=(${{ inputs.failoverserver }})
+            #SERVERS=(${{ inputs.failoverserver }})
             #fi
             
-              for server_id in "${SERVERS[@]}"; do
+              for server_id in ${{ inputs.failoverserver }}; do
                 unset REGION LATITUDE LONGITUDE
                 COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" \
                 "https://stuff.armbian.com/netbox/api/virtualization/virtual-machines/?limit=500&name__empty=false&id=$server_id" | jq)
