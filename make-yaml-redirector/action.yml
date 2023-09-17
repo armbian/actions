@@ -8,7 +8,16 @@ inputs:
   port:
     description: Repository
     required: true
-  netbox:
+  geodb:
+    description: Repository
+    required: true
+  asndb:
+    description: Repository
+    required: true
+  dl_map:
+    description: Repository
+    required: true
+  netbox:  
     description: NetboxID
     required: true
 
@@ -17,7 +26,6 @@ runs:
   steps:
 
     - name: "Select repository"
-      if: ${{ inputs.STATUS == '' }}
       shell: bash
       run: |
 
@@ -28,9 +36,9 @@ runs:
           echo "#" >> dlrouter-${FILENAME}.yaml
           #toilet -f emboss ${FILENAME} | sed 's/^/# /' > dlrouter-${FILENAME}.yaml
           cat <<- EOF >> dlrouter-${FILENAME}.yaml
-          geodb: /scripts/redirect-config/GeoLite2-City.mmdb
-          asndb: /scripts/redirect-config/GeoLite2-ASN.mmdb
-          dl_map: /scripts/redirect-config/userdata.csv
+          geodb: ${{ inputs.geodb }}
+          asndb: ${{ inputs.asndb }}
+          dl_map: ${{ inputs.dl_map }}
           bind: ':${PORT}'
           
           # Reload authorization key
@@ -45,6 +53,7 @@ runs:
           # server = full url or host+path
           # weight = int
           # optional: latitude, longitude (float)
+          
           servers:
           EOF
             echo "<pre>" >> $GITHUB_STEP_SUMMARY
