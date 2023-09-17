@@ -17,8 +17,11 @@ inputs:
   dl_map:
     description: dl_map
     required: true
-  reloadKey:
+  reloadKey: 
     description: reloadKey
+    required: true
+  failoverserver:
+    description: failover
     required: true
   netbox:  
     description: NetboxID
@@ -65,7 +68,7 @@ runs:
 
             # failover
             if (( ${#SERVERS[@]} == 0 )); then
-            SERVERS=(imola.armbian.com)
+            SERVERS=(${{ inputs.failoverserver }})
             fi
             
               for server in "${SERVERS[@]}"; do
