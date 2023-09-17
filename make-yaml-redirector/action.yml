@@ -9,13 +9,16 @@ inputs:
     description: Repository
     required: true
   geodb:
-    description: Repository
+    description: geodb
     required: true
   asndb:
-    description: Repository
+    description: asndb
     required: true
   dl_map:
-    description: Repository
+    description: dl_map
+    required: true
+  reloadKey:
+    description: reloadKey
     required: true
   netbox:  
     description: NetboxID
@@ -42,7 +45,7 @@ runs:
           bind: ':${PORT}'
           
           # Reload authorization key
-          reloadKey: NLnC4QNF862QumEpt7zwVPZAEvqAz6cZ
+          reloadKey: ${{ inputs.reloadKey }}
           
           # LRU Cache Size (in items)
           cacheSize: 2048
