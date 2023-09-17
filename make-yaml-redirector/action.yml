@@ -7,7 +7,7 @@ inputs:
     required: true
   port:
     description: Repository
-    required: true
+    required: false
   geodb:
     description: geodb
     required: true
@@ -46,7 +46,9 @@ runs:
           geodb: ${{ inputs.geodb }}
           asndb: ${{ inputs.asndb }}
           dl_map: ${{ inputs.dl_map }}
-          bind: ':${PORT}'
+          EOF
+          [[ -n ${PORT} ]] && echo "bind: ':${PORT}'" >> dlrouter-${FILENAME}.yaml
+          cat <<- EOF >> dlrouter-${FILENAME}.yaml
           
           # Reload authorization key
           reloadKey: ${{ inputs.reloadKey }}
