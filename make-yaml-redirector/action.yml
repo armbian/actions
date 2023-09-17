@@ -62,6 +62,12 @@ runs:
             echo "<pre>" >> $GITHUB_STEP_SUMMARY
             SERVERS=($(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" \
             "https://stuff.armbian.com/netbox/api/virtualization/virtual-machines/?limit=500&name__empty=false&status=active&device_role=Mirror&tag=${FILENAME}" | jq '.results[] | .name' | grep -v null | sed "s/\"//g"))
+
+            # failover
+            if (( ${#SERVERS[@]} == 0 )); then
+            SERVERS=(www.armbian.com/${FILENAME})
+            fi
+            
               for server in "${SERVERS[@]}"; do
                 unset REGION LATITUDE LONGITUDE
                 COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" \
