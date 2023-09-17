@@ -34,6 +34,8 @@ runs:
     - shell: bash
       run: |
 
+          rm -rf *.yaml
+
           FILENAME=${{ inputs.variant }}
           PORT=${{ inputs.port }}
           
