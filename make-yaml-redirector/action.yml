@@ -8,6 +8,10 @@ inputs:
   port:
     description: Repository
     required: true
+  netbox:
+    description: NetboxID
+    required: true
+
 runs:
   using: "composite"
   steps:
@@ -44,11 +48,11 @@ runs:
           servers:
           EOF
             echo "<pre>" >> $GITHUB_STEP_SUMMARY
-            SERVERS=($(curl -sH "Authorization: Token ${{ secrets.NETBOX_TOKEN }}" -H "Accept: application/json; indent=4" \
+            SERVERS=($(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" \
             "https://stuff.armbian.com/netbox/api/virtualization/virtual-machines/?limit=500&name__empty=false&status=active&device_role=Mirror&tag=${FILENAME}" | jq '.results[] | .name' | grep -v null | sed "s/\"//g"))
               for server in "${SERVERS[@]}"; do
                 unset REGION LATITUDE LONGITUDE
-                COMMAND=$(curl -sH "Authorization: Token ${{ secrets.NETBOX_TOKEN }}" -H "Accept: application/json; indent=4" \
+                COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" \
                 "https://stuff.armbian.com/netbox/api/virtualization/virtual-machines/?limit=500&name__empty=false&name=$server" | jq)
                 # where paths has been altered by mirror
                 DL_PATH_DEBS=$(echo $COMMAND | jq '.results[] | .custom_fields["download_path_debs"]' | sed "s/\"//g")
@@ -57,7 +61,7 @@ runs:
                 WEIGHT=$(echo $COMMAND | jq '.results[] | .custom_fields["weight"]' | head -1 | sed "s/\"//g")
                 SITE_ID=$(echo $COMMAND | jq '.results[] | .site.id' | sed "s/\"//g")
                 if [[ $SITE_ID != null ]]; then
-                  COMMAND=$(curl -sH "Authorization: Token ${{ secrets.NETBOX_TOKEN }}" -H "Accept: application/json; indent=4" \
+                  COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" \
                   "https://stuff.armbian.com/netbox/api/dcim/sites/?limit=500&id=$SITE_ID" | jq)
                   REGION=$(echo $COMMAND | jq '.results[] | .region.name' | sed "s/\"//g")
                   LATITUDE=$(echo $COMMAND | jq '.results[] | .latitude' | sed "s/\"//g")
