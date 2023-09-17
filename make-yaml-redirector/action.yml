@@ -73,24 +73,22 @@ runs:
             
               for server_id in ${{ inputs.failoverserver }}; do
                 unset REGION LATITUDE LONGITUDE
-                COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" \
-                "https://stuff.armbian.com/netbox/api/virtualization/virtual-machines/?limit=500&name__empty=false&id=$server_id" | jq)
-                # where paths has been altered by mirror
-                DL_PATH_DEBS=$(echo $COMMAND | jq '.results[] | .custom_fields["download_path_debs"]' | sed "s/\"//g")
-                DL_PATH_IMAGES=$(echo $COMMAND | jq '.results[] | .custom_fields["download_path_images"]' | sed "s/\"//g")
+                COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" "https://stuff.armbian.com/netbox/api/virtualization/virtual-machines/$server_id/" | jq)
                 
-                WEIGHT=$(echo $COMMAND | jq '.results[] | .custom_fields["weight"]' | head -1 | sed "s/\"//g")
-                SITE_ID=$(echo $COMMAND | jq '.results[] | .site.id' | sed "s/\"//g")
+                
+                DL_PATH_DEBS=$(echo $COMMAND | jq '.custom_fields["download_path_debs"]' | sed "s/\"//g")
+                DL_PATH_IMAGES=$(echo $COMMAND | jq '.custom_fields["download_path_images"]' | sed "s/\"//g")
+                WEIGHT=$(echo $COMMAND | jq '.custom_fields["weight"]' | head -1 | sed "s/\"//g")
+                SITE_ID=$(echo $COMMAND | jq '.site.id' | sed "s/\"//g")
                 if [[ $SITE_ID != null ]]; then
-                  COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" \
-                  "https://stuff.armbian.com/netbox/api/dcim/sites/?limit=500&id=$SITE_ID" | jq)
-                  REGION=$(echo $COMMAND | jq '.results[] | .region.name' | sed "s/\"//g")
-                  NAME=$(echo $COMMAND | jq '.results[] | .name' | sed "s/\"//g")
-                  LATITUDE=$(echo $COMMAND | jq '.results[] | .latitude' | sed "s/\"//g")
-                  LONGITUDE=$(echo $COMMAND | jq '.results[] | .longitude' | sed "s/\"//g")
-                  PHYSICAL=$(echo $COMMAND | jq '.results[] | .physical_address' | sed "s/\"//g")
-                  TIME_ZONE=$(echo $COMMAND | jq '.results[] | .time_zone' | sed "s/\"//g")
-                  UPLOAD=$(echo $COMMAND | jq '.results[] | .custom_fields["upload_speed"]' | sed "s/\"//g")
+                  COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" "https://stuff.armbian.com/netbox/api/dcim/sites/${SITE_ID}/" | jq)
+                  REGION=$(echo $COMMAND | jq '.region.name' | sed "s/\"//g")
+                  NAME=$(echo $COMMAND | jq '.name' | sed "s/\"//g")
+                  LATITUDE=$(echo $COMMAND | jq '.latitude' | sed "s/\"//g")
+                  LONGITUDE=$(echo $COMMAND | jq '.longitude' | sed "s/\"//g")
+                  PHYSICAL=$(echo $COMMAND | jq '.physical_address' | sed "s/\"//g")
+                  TIME_ZONE=$(echo $COMMAND | jq '.time_zone' | sed "s/\"//g")
+                  UPLOAD=$(echo $COMMAND | jq '.custom_fields["upload_speed"]' | sed "s/\"//g")
                 fi
           echo ""  >> dlrouter-${FILENAME}.yaml
           [[ -n $REGION ]] && echo "  # $TIME_ZONE - $UPLOAD Mbit/s" >> dlrouter-${FILENAME}.yaml
