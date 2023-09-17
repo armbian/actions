@@ -85,6 +85,7 @@ runs:
                   COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" \
                   "https://stuff.armbian.com/netbox/api/dcim/sites/?limit=500&id=$SITE_ID" | jq)
                   REGION=$(echo $COMMAND | jq '.results[] | .region.name' | sed "s/\"//g")
+                  NAME=$(echo $COMMAND | jq '.results[] | .name' | sed "s/\"//g")
                   LATITUDE=$(echo $COMMAND | jq '.results[] | .latitude' | sed "s/\"//g")
                   LONGITUDE=$(echo $COMMAND | jq '.results[] | .longitude' | sed "s/\"//g")
                   PHYSICAL=$(echo $COMMAND | jq '.results[] | .physical_address' | sed "s/\"//g")
@@ -101,7 +102,7 @@ runs:
           [[ "$DL_PATH_DEBS" != null && "${FILENAME}" == debs ]] && DL_PATH="${DL_PATH_DEBS}"
           [[ "$DL_PATH_IMAGES" != null && "${FILENAME}" == images ]] && DL_PATH="${DL_PATH_IMAGES}"
           
-          echo "  - server: $server/$DL_PATH/" >> "dlrouter-${FILENAME}.yaml"
+          echo "  - server: $NAME/$DL_PATH/" >> "dlrouter-${FILENAME}.yaml"
           [[ "$LATITUDE" != null && -n "$LATITUDE" ]] && echo "    latitude: $LATITUDE" >> dlrouter-${FILENAME}.yaml
           [[ "$LONGITUDE" != null && -n "$LONGITUDE" ]] && echo "    longitude: $LONGITUDE" >> dlrouter-${FILENAME}.yaml
           [[ "$WEIGHT" != null ]] && echo "    weight: $WEIGHT" >> dlrouter-${FILENAME}.yaml          
