@@ -91,5 +91,5 @@ runs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: redirecor-config
+        name: redirector-config
         path: ${{ github.workspace }}/*.yaml
