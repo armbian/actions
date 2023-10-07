@@ -6,6 +6,8 @@ inputs:
     required: false
   GITHUB_TOKEN:
     required: false
+  TEAM:
+    required: false
 runs:
   using: "composite"
   steps:
@@ -14,7 +16,7 @@ runs:
        with:
          username: ${{ github.actor }}
          organization: armbian
-         team: "Release manager"
+         team: "${{ inputs.TEAM }}"
          GITHUB_TOKEN: ${{ inputs.ORG_MEMBERS }}
 
     - name: Cancel if not a part of the team
