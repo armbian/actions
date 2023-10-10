@@ -26,8 +26,7 @@ runs:
         run: |
         
           #sudo chown -R $USER:$USER cache/. 2> /dev/null || true
-          sudo chown -R $USER:$USER . 2> /dev/null || true
-          sudo rm -f build/lib/tools/common/__pycache__/bash_declare_parser.cpython-310.pyc 2> /dev/null || true
+          #sudo rm -f build/lib/tools/common/__pycache__/bash_declare_parser.cpython-310.pyc 2> /dev/null || true
           sudo rm -f lib/tools/common/__pycache__/bash_declare_parser.cpython-310.pyc 2> /dev/null || true
 
       - name: Remove dangling Docker images
