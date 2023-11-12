@@ -8,6 +8,8 @@ inputs:
     required: true
   DUT_SLUG:
     required: true
+  DUT_CONF_TYPE:
+    required: true  
   BOARD_NAME:
     required: true
   LINUXFAMILY:
@@ -143,6 +145,7 @@ runs:
             "dut_ip" : "${{ inputs.DUT_IP }}",
             "board_name" : "${{ inputs.BOARD_NAME }}",
             "board_slug" : "${{ inputs.DUT_SLUG }}",
+            "board_conf_type" : "${{ inputs.DUT_CONF_TYPE }}",
             "u-boot" : "${{ env.UBOOT || 'n/a' }}",
             "kernel" : "${{ env.KERNEL || 'n/a' }}",
             "iperf" : "${{ env.IPERF || 'n/a' }}",
