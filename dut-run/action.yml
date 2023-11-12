@@ -150,7 +150,7 @@ runs:
             "kernel" : "${{ env.KERNEL || 'n/a' }}",
             "iperf" : "${{ env.IPERF || 'n/a' }}",
             "sevenzip" : "${{ env.SEVENZIP || 'n/a' }}",
-            "armbian_monitor" : "<a href=${{ env.ARMBIAN_MONITOR>Logs</a> || 'n/a' }}",
+            "armbian_monitor" : "${{ env.ARMBIAN_MONITOR || 'n/a' }}",
             "kernel_target" : "${{ inputs.BRANCH }}",
             "repository" : "${{ env.REPOSITORY }}"
           },
