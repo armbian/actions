@@ -150,7 +150,7 @@ runs:
             "kernel" : "${{ env.KERNEL || 'n/a' }}",
             "iperf" : "${{ env.IPERF || 'n/a' }}",
             "sevenzip" : "${{ env.SEVENZIP || 'n/a' }}",
-            "armbian_monitor" : "${{ env.ARMBIAN_MONITOR || 'n/a' }}",
+            "armbian_monitor" : "${{ env.ARMBIAN_MONITOR || '<img src=https://img.shields.io/static/v1?label=&message=n/a&color=white>' }}",
             "kernel_target" : "${{ inputs.BRANCH }}",
             "repository" : "${{ env.REPOSITORY }}"
           },
