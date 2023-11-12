@@ -55,9 +55,10 @@ runs:
         run: |
 
           if [[ "${{ inputs.STATUS }}" != "notfound" ]]; then
-          armbian_monitor=$(ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "armbianmonitor -u | grep -Eo 'https://[^ >]+'" | head -1 || true)
-          if [[ -n "${armbian_monitor}" ]]; then
-          echo "ARMBIAN_MONITOR=<a href=${armbian_monitor}>Logs</>" >> $GITHUB_ENV
-          else
-          echo "ARMBIAN_MONITOR=n/a" >> $GITHUB_ENV
+              armbian_monitor=$(ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "armbianmonitor -u | grep -Eo 'https://[^ >]+'" | head -1 || true)
+              if [[ -n "${armbian_monitor}" ]]; then
+                  echo "ARMBIAN_MONITOR=<a href=${armbian_monitor}>Logs</>" >> $GITHUB_ENV
+              else
+                  echo "ARMBIAN_MONITOR=n/a" >> $GITHUB_ENV
+              fi
           fi
