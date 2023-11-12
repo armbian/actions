@@ -57,8 +57,8 @@ runs:
           if [[ "${{ inputs.STATUS }}" != "notfound" ]]; then
               armbian_monitor=$(ssh -o StrictHostKeyChecking=no root@${{ inputs.DUT_IP }} "armbianmonitor -u | grep -Eo 'https://[^ >]+'" | head -1 || true)
               if [[ -n "${armbian_monitor}" ]]; then
-                  echo "ARMBIAN_MONITOR=<a href=${armbian_monitor}>Logs</>" >> $GITHUB_ENV
+                  echo "ARMBIAN_MONITOR=<a href=${armbian_monitor}><img src=https://img.shields.io/static/v1?label=&message=Log&color=blue></a>" >> $GITHUB_ENV
               else
-                  echo "ARMBIAN_MONITOR=n/a" >> $GITHUB_ENV
+                  echo "ARMBIAN_MONITOR=<a href=#><img src=https://img.shields.io/static/v1?label=&message=N/A&color=white></a>" >> $GITHUB_ENV
               fi
           fi
