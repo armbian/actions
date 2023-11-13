@@ -115,7 +115,7 @@ runs:
         run: |
 
           ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "shutdown --no-wall -r now" || true
-          sleep 15
+          sleep 30
           secs=${{ inputs.TIMEOUT }}
           while [ $secs -gt 0 ]; do
              echo -ne "$secs\033[0K\r"
