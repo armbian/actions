@@ -56,11 +56,14 @@ runs:
           # check if kernel install is possible
           if ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" 2>/dev/null | grep linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}; then
 
+            # download new
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get reinstall -y --download-only linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
+
             # purge previously installed ones
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-image-*'" || true
 
             # install new
-            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get reinstall -y linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
 
             echo "Install: linux-image-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
@@ -71,11 +74,14 @@ runs:
           # check if DTB install is possible
           if ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" 2>/dev/null | grep linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}; then
 
+            # download new
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get reinstall -y --download-only linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
+
             # purge previously installed ones
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-dtb-*'" || true
 
             # install new
-            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get reinstall -y linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
 
             echo "Install: linux-dtb-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
@@ -90,11 +96,14 @@ runs:
           # check if headers install is possible
           if ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt search linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" 2>/dev/null | grep linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}; then
 
+            # download new
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get reinstall -y --download-only linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
+
             # purge previously installed ones
             ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get -y purge '^linux-headers-*'" || true
 
             # install new
-            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt install -y linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
+            ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt-get reinstall -y linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}"
 
             echo "Install: linux-headers-${{ inputs.BRANCH }}-${{ inputs.LINUXFAMILY }}" >> $GITHUB_STEP_SUMMARY
           else
