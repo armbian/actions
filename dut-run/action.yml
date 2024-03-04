@@ -38,7 +38,7 @@ runs:
         run: |
 
           ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "sed -i 's|http:\/\/[^ ]*|http:\/\/${{ inputs.REPOSITORY }}|' /etc/apt/sources.list.d/armbian.list" || true
-          ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt update; dpkg --configure -a; apt-get -y install binutils iperf3 neofetch datamash p7zip-full" || true
+          ssh -o StrictHostKeyChecking=no ${{ inputs.DUT_USER }}@${{ inputs.DUT_IP }} "apt update; dpkg --configure -a; apt-get -y install binutils iperf3 neofetch datamash p7zip-full; apt clean" || true
 
           if [ "${{ inputs.REPOSITORY }}" == "beta.armbian.com" ]; then 
           echo "REPOSITORY=beta" >> $GITHUB_ENV
