@@ -130,7 +130,7 @@ runs:
              echo -ne "$secs\033[0K\r"
              sleep 1
              : $((secs--))
-             if nc -z "${{ inputs.DUT_IP }}" 22 -w 15 2>/dev/null; then break; fi
+             if timeout 3 nc -z "${{ inputs.DUT_IP }}" 22 -w 15 2>/dev/null; then break; fi
           done
           if [ $secs -eq 0 ]; then echo "STATUS=timeout" >> $GITHUB_ENV; fi
 
