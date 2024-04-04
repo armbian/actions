@@ -128,7 +128,7 @@ runs:
           secs=${{ inputs.TIMEOUT }}
           while [ $secs -gt 0 ]; do
              echo -ne "$secs\033[0K\r"
-             sleep 1
+             sleep 10
              : $((secs--))
              if timeout 3 nc -z "${{ inputs.DUT_IP }}" 22 -w 15 2>/dev/null; then break; fi
           done
