@@ -19,6 +19,7 @@ runs:
 
           sudo rm -rf cache/rootfs/*
           sudo rm -rf output/{images,debs,debs-beta}/*
+          sudo rm -rf userpatches/*
 
       - name: "Fix permissions"
         if: ${{ env.RUNNER_USER != runner }}
