@@ -52,7 +52,7 @@ runs:
         run: |
 
           if [ "${{ inputs.LINUXFAMILY }}" == "rk35xx" ] && [ "${{ inputs.BRANCH }}" != "vendor" ] ; then
-              echo "LINUXFAMILY=rockchip64" >> $GITHUB_ENV
+              echo "LINUXFAMILY=rockchip-rk3588" >> $GITHUB_ENV
           else
               echo "LINUXFAMILY=${{ inputs.LINUXFAMILY }}" >> $GITHUB_ENV
           fi
