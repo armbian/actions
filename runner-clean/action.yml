@@ -17,7 +17,9 @@ runs:
         shell: bash
         run: |
 
+          sudo rm -rf cache/toolchain/*
           sudo rm -rf cache/rootfs/*
+          sudo rm -rf cache/sources/*
           sudo rm -rf output/{images,debs,debs-beta}/*
           sudo rm -rf userpatches/*
 
