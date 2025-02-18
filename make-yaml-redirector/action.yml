@@ -68,7 +68,7 @@ runs:
             IFS=',' read -r SITE_ID NAME DL_PATH_DEBS DL_PATH_IMAGES WEIGHT <<<$(echo $COMMAND | jq '.site.id,.name,.custom_fields["download_path_debs"],.custom_fields["download_path_images"],.custom_fields["weight"]' | sed 's/$/,/' | xargs | sed 's/, /,/g')
             # site data
             COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" "https://stuff.armbian.com/netbox/api/dcim/sites/${SITE_ID}/" | jq)
-            IFS=',' read REGION LATITUDE LONGITUDE PHYSICAL TIME_ZONE UPLOAD <<<$(echo $COMMAND | jq -r '.region.name,.latitude,.longitude,.physical_address,.time_zone,.custom_fields["upload_speed"]' | sed 's/$/,/' | xargs | sed 's/, /,/g')
+            IFS=',' read REGION LATITUDE LONGITUDE PHYSICAL TIME_ZONE UPLOAD DOWNLOAD_EXCLUDE <<<$(echo $COMMAND | jq -r '.region.name,.latitude,.longitude,.physical_address,.time_zone,.custom_fields["upload_speed"],.custom_fields["download_exclude"]' | sed 's/$/,/' | xargs | sed 's/, /,/g')
             echo ""  >> dlrouter-${FILENAME}.yaml
             
           [[ -n $REGION ]] && echo "  # $TIME_ZONE - $UPLOAD Mbit/s" >> dlrouter-${FILENAME}.yaml
@@ -81,6 +81,12 @@ runs:
           [[ "$DL_PATH_IMAGES" != null && "${FILENAME}" == images ]] && DL_PATH="${DL_PATH_IMAGES}"
           
           echo "  - server: $NAME/$DL_PATH/" >> "dlrouter-${FILENAME}.yaml"
+          if [[ "$DOWNLOAD_EXCLUDE" != null && -n "$DOWNLOAD_EXCLUDE" ]]; then
+              echo "    rules: $DOWNLOAD_EXCLUDE" >> dlrouter-${FILENAME}.yaml
+              echo "    - field: location.country.iso_code" >> dlrouter-${FILENAME}.yaml
+              echo "        not_in:" >> dlrouter-${FILENAME}.yaml
+              echo "          - ${DOWNLOAD_EXCLUDE}" >> dlrouter-${FILENAME}.yaml
+          fi
           [[ "$LATITUDE" != null && -n "$LATITUDE" ]] && echo "    latitude: $LATITUDE" >> dlrouter-${FILENAME}.yaml
           [[ "$LONGITUDE" != null && -n "$LONGITUDE" ]] && echo "    longitude: $LONGITUDE" >> dlrouter-${FILENAME}.yaml
           [[ "$WEIGHT" != null ]] && echo "    weight: $WEIGHT" >> dlrouter-${FILENAME}.yaml          
