@@ -82,7 +82,7 @@ runs:
           
           echo "  - server: $NAME/$DL_PATH/" >> "dlrouter-${FILENAME}.yaml"
           if [[ "$DOWNLOAD_EXCLUDE" != null && -n "$DOWNLOAD_EXCLUDE" ]]; then
-              echo "    rules: $DOWNLOAD_EXCLUDE" >> dlrouter-${FILENAME}.yaml
+              echo "    rules:" >> dlrouter-${FILENAME}.yaml
               echo "    - field: location.country.iso_code" >> dlrouter-${FILENAME}.yaml
               echo "        not_in:" >> dlrouter-${FILENAME}.yaml
               echo "          - ${DOWNLOAD_EXCLUDE}" >> dlrouter-${FILENAME}.yaml
