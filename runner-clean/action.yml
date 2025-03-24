@@ -19,12 +19,18 @@ runs:
 
           sudo rm -rf cache/toolchain/*
           sudo rm -rf cache/rootfs/*
+          sudo rm -rf build/cache/toolchain/*
+          sudo rm -rf build/cache/rootfs/*
           # clean sources only if usage goes over 70% (arbitrary)
           if [[ $(df --total -hl --output=pcent | tail -1 | xargs | sed "s/%//g") -gt 70 ]]; then
               sudo rm -rf cache/sources/*
-          fi
+              sudo rm -rf build/cache/sources/*
+          fi          
           sudo rm -rf output/{images,debs,debs-beta}/*
           sudo rm -rf userpatches/*
+          sudo rm -rf build/output/{images,debs,debs-beta}/*
+          sudo rm -rf build/userpatches/*
+          
 
       - name: "Fix permissions"
         if: ${{ env.RUNNER_USER != runner }}
