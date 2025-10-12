@@ -17,6 +17,9 @@ inputs:
   dl_map:
     description: dl_map
     required: true
+  certDataPath:
+    description: certDataPath
+    required: false
   reloadKey: 
     description: reloadKey
     required: true
@@ -38,6 +41,7 @@ runs:
 
           FILENAME=${{ inputs.variant }}
           PORT=${{ inputs.port }}
+          CERTPATH=${{ inputs.certDataPath }}
           
           cat <<- EOF > dlrouter-${FILENAME}.yaml
           #
@@ -47,6 +51,7 @@ runs:
           asndb: ${{ inputs.asndb }}
           dl_map: ${{ inputs.dl_map }}
           EOF
+          [[ -n ${CERTPATH} ]] && echo "certDataPath: ${CERTPATH}" >> dlrouter-${FILENAME}.yaml
           [[ -n ${PORT} ]] && echo "bind: ':${PORT}'" >> dlrouter-${FILENAME}.yaml
           cat <<- EOF >> dlrouter-${FILENAME}.yaml
           
