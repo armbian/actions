@@ -53,6 +53,7 @@ runs:
           EOF
           [[ -n ${CERTPATH} ]] && echo "certDataPath: ${CERTPATH}" >> dlrouter-${FILENAME}.yaml
           [[ -n ${PORT} ]] && echo "bind: ':${PORT}'" >> dlrouter-${FILENAME}.yaml
+          [[ ${FILENAME} == *images* ]] && echo "enableProfiler: true" >> dlrouter-${FILENAME}.yaml
           cat <<- EOF >> dlrouter-${FILENAME}.yaml
           
           # Reload authorization key
