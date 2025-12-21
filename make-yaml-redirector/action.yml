@@ -74,7 +74,8 @@ runs:
             - rootfs.img.xz: -rootfs
             - img.qcow2: -qcow2
             - img.qcow2.xz: -qcow2
-            - boot.bin.xz: -uboot-bin
+            - boot.bin.xz: -boot
+            - u-boot.rom.xz: -u-boot-rom
             - hyperv.zip: -hyperv
 
           servers:
