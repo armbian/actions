@@ -420,8 +420,20 @@
     }
 
     function normalizeActions(json){
-      return json.map((x, idx) => ({
+      // Handle new hierarchical structure: { organization, repository, actions }
+      const actions = json.actions || json;
+
+      // Store organization and repository for display
+      if (json.organization) {
+        el("badgeCount").dataset.org = json.organization;
+      }
+      if (json.repository) {
+        el("badgeCount").dataset.repo = json.repository;
+      }
+
+      return actions.map((x, idx) => ({
         name: String(x.name ?? `item-${idx}`),
+        filename: String(x.filename ?? x.name ?? `item-${idx}`),
         description: String(x.description ?? ""),
         execution_method: String(x.execution_method ?? ""),
         status_link: x.status_link ?? null,
@@ -538,13 +550,16 @@
       const failed = data.filter(x => (x.description || "").toLowerCase().includes("ai description failed")).length;
       const noDesc = data.filter(x => !(x.description || "").trim()).length;
 
+      const org = el("badgeCount").dataset.org || "—";
+      const repo = el("badgeCount").dataset.repo || "—";
+
       el("badgeCount").textContent = `${total} items`;
 
       el("stats").innerHTML = `
+        <div class="stat"><div class="k">Organization</div><div class="v">${escapeHtml(org)}</div></div>
+        <div class="stat"><div class="k">Repository</div><div class="v">${escapeHtml(repo)}</div></div>
         <div class="stat"><div class="k">Total</div><div class="v">${total}</div></div>
         <div class="stat"><div class="k">With status link</div><div class="v">${withStatus}</div></div>
-        <div class="stat"><div class="k">AI failed</div><div class="v">${failed}</div></div>
-        <div class="stat"><div class="k">Empty description</div><div class="v">${noDesc}</div></div>
       `;
     }
 
@@ -560,10 +575,14 @@
     function renderOverview(){
       renderStats();
 
+      const org = el("badgeCount").dataset.org || "armbian";
+      const repo = el("badgeCount").dataset.repo || "armbian.github.io";
+      const repoPath = `${org}/${repo}`;
+
       const items = view;
       const cards = items.map(item => {
-        const workflowName = item.name.replace('.yml', '');
-        const badgeUrl = `https://img.shields.io/github/actions/workflow/status/armbian/armbian.github.io/${item.name}?label=&style=for-the-badge&branch=main&logoColor=white`;
+        const workflowFilename = item.filename;
+        const badgeUrl = `https://img.shields.io/github/actions/workflow/status/${repoPath}/${workflowFilename}?label=&style=for-the-badge&branch=main&logoColor=white`;
 
         const status = item.status_link
           ? `<a href="${escapeAttr(item.status_link)}" target="_blank" rel="noopener" class="status-badge-link"><img src="${escapeAttr(badgeUrl)}" alt="Workflow Status" class="status-badge" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';" /><span style="display:none;"><span class="iconify" data-icon="lucide:external-link"></span> View Status</span></a>`
@@ -594,8 +613,13 @@
     }
 
     function renderTable(items){
+      const org = el("badgeCount").dataset.org || "armbian";
+      const repo = el("badgeCount").dataset.repo || "armbian.github.io";
+      const repoPath = `${org}/${repo}`;
+
       const rows = items.map(item => {
-        const badgeUrl = `https://img.shields.io/github/actions/workflow/status/armbian/armbian.github.io/${item.name}?label=&style=for-the-badge&branch=main&logoColor=white`;
+        const workflowFilename = item.filename;
+        const badgeUrl = `https://img.shields.io/github/actions/workflow/status/${repoPath}/${workflowFilename}?label=&style=for-the-badge&branch=main&logoColor=white`;
 
         const status = item.status_link
           ? `<a href="${escapeAttr(item.status_link)}" target="_blank" rel="noopener" class="status-badge-link"><img src="${escapeAttr(badgeUrl)}" alt="Workflow Status" class="status-badge" style="height:20px;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';" /><span style="display:none;"><span class="iconify" data-icon="lucide:external-link"></span></span></a>`
