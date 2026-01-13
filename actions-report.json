@@ -1,0 +1,219 @@
+[
+  {
+    "name": "assets-generate-board-thumbnails.yml",
+    "description": "This GitHub Actions workflow generates thumbnails for board images and vendor logos. It is triggered on pushes to the main branch affecting specific directories or via manual dispatch. The workflow includes jobs for checking permissions, building matrices for boards and vendors, processing images, and generating a summary report.",
+    "execution_method": "on: push to main branch, workflow_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/assets-generate-board-thumbnails.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/assets-generate-board-thumbnails.yml"
+  },
+  {
+    "name": "community-enforce-triage-role.yml",
+    "description": "This GitHub Actions workflow enforces the 'All-repository triage' role for members of the Armbian organization. It is triggered weekly on Mondays at 03:00 UTC and can also be manually triggered with optional inputs for a dry run and exclusion of specific usernames.",
+    "execution_method": "schedule (cron), workflow_dispatch (with inputs)",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/community-enforce-triage-role.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/community-enforce-triage-role.yml"
+  },
+  {
+    "name": "community-invite-contributors.yml",
+    "description": "This workflow invites contributors to the Armbian organization by checking the eligibility of users who have opened pull requests in specified repositories over the last six months. It runs weekly on a schedule and can also be triggered manually with an optional dry-run input to simulate the invitation process without sending actual invites.",
+    "execution_method": "Triggered on schedule (cron: '0 0 * * 0') and manually via workflow_dispatch with an optional input 'dry-run'.",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/community-invite-contributors.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/community-invite-contributors.yml"
+  },
+  {
+    "name": "data-update-base-files-info.yml",
+    "description": "This workflow updates base-files information in the repository when triggered manually or via a repository dispatch event. It checks out the repository, sets up a Python environment, installs necessary dependencies, runs a Python script to generate a JSON file, and commits any changes back to the repository. It is restricted to the 'Armbian' repository owner.",
+    "execution_method": "Triggered by workflow_dispatch and repository_dispatch events with type 'Data: Update base-files info'.",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-base-files-info.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-base-files-info.yml"
+  },
+  {
+    "name": "data-update-download-index.yml",
+    "description": "This workflow updates the download index for Armbian by generating a JSON index and downloading torrent files. It is triggered by repository_dispatch events of type 'Data: Update download index' and can also be manually triggered via workflow_dispatch. The workflow checks out multiple repositories, installs dependencies, generates a JSON file, and commits changes back to the GitHub repository if any updates are made.",
+    "execution_method": "repository_dispatch, workflow_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-download-index.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-download-index.yml"
+  },
+  {
+    "name": "data-update-image-info.yml",
+    "description": "This workflow updates the image-info JSON file in the armbian.github.io repository. It is triggered on a weekly schedule every Monday at midnight and can also be manually triggered via workflow_dispatch. The job checks out necessary repositories, generates the inventory JSON, and commits changes if any are detected.",
+    "execution_method": "schedule (cron: '0 0 * * MON'), workflow_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-image-info.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-image-info.yml"
+  },
+  {
+    "name": "data-update-jira-excerpt.yml",
+    "description": "This workflow updates Jira excerpts by pulling data from the Armbian Jira instance when triggered by a repository_dispatch event of type 'Data: Update Jira excerpt'. It checks out the repository, sets up Python, installs dependencies, fetches data from Jira, and commits any changes to the repository. The workflow only runs if the repository owner is 'Armbian'.",
+    "execution_method": "repository_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-jira-excerpt.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-jira-excerpt.yml"
+  },
+  {
+    "name": "data-update-partners-data.yml",
+    "description": "This GitHub Actions workflow updates partner data by fetching information from the Zoho Bigin API and committing the results to the armbian.github.io repository. It is triggered by a repository_dispatch event with a specific type or manually via workflow_dispatch. The workflow includes steps to obtain access tokens, fetch partner data, enrich it with GitHub avatars, and push the updated JSON files to the repository.",
+    "execution_method": "repository_dispatch, workflow_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-partners-data.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-partners-data.yml"
+  },
+  {
+    "name": "data-update-rpi-imager-json.yml",
+    "description": "This GitHub Actions workflow is designed to update a JSON index for RPI images. It can be triggered manually via the GitHub Actions UI or through a repository dispatch event specifically for data updates. The workflow checks out multiple repositories, installs dependencies, builds a JSON file from remote data, and commits changes back to a specified repository if there are updates.",
+    "execution_method": "Triggered on: repository_dispatch, workflow_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-rpi-imager-json.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-rpi-imager-json.yml"
+  },
+  {
+    "name": "generate-actions-report.yml",
+    "description": "This workflow generates a report on AI actions, triggered by push events or manually via workflow_dispatch. It allows users to specify a folder to scan and a default branch for links, defaulting to '.github' and 'main' respectively. The workflow checks out the repository, sets up Node.js, installs dependencies, generates the report using a Node.js script, and uploads the resulting artifact.",
+    "execution_method": "Triggered on push and workflow_dispatch with inputs for scan_root and default_branch.",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-actions-report.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-actions-report.yml"
+  },
+  {
+    "name": "generate-keyring-data.yaml",
+    "description": "This workflow downloads the latest keyring data for Debian and Ubuntu, triggered by manual dispatch or a repository dispatch event. It checks out the repository, retrieves the latest keyring packages, downloads them, and updates the repository with the new files. Finally, it triggers another action to notify of the update.",
+    "execution_method": "workflow_dispatch, repository_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-keyring-data.yaml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-keyring-data.yaml"
+  },
+  {
+    "name": "generate-motd.yaml",
+    "description": "This workflow generates a message of the day (MOTD) for Linux OS when triggered by a repository_dispatch event of type 'MOTD update'. It checks out two repositories, processes a JSON file to create a quotes.txt, and commits any changes back to the repository. Additionally, it triggers another action for a keyrings update.",
+    "execution_method": "repository_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-motd.yaml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-motd.yaml"
+  },
+  {
+    "name": "generate-servers-jsons.yml",
+    "description": "This GitHub Actions workflow generates JSON files from NetBox data, specifically for servers categorized as download, cache, and upload. It can be triggered manually via workflow_dispatch or automatically on an hourly schedule. The workflow checks out a specific repository, installs necessary dependencies, fetches data from the NetBox API, processes it with jq, and commits the generated JSON files back to the repository if there are changes.",
+    "execution_method": "Triggered on: workflow_dispatch, schedule (cron: '0 * * * *')",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-servers-jsons.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-servers-jsons.yml"
+  },
+  {
+    "name": "generate-torrent-tracker-lists.yml",
+    "description": "This workflow updates torrent tracker lists by generating a new announce list from a specified repository. It is triggered manually via workflow_dispatch or automatically on a schedule at 4 AM UTC daily. The job checks out the necessary repositories, processes the tracker data, commits the results to a data branch, and triggers another workflow for web indexing.",
+    "execution_method": "workflow_dispatch, schedule (cron: '0 4 * * *')",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-torrent-tracker-lists.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-torrent-tracker-lists.yml"
+  },
+  {
+    "name": "generate-web-directory.yml",
+    "description": "This workflow generates a directory listing for a web page, triggered by pushes to the 'data' branch, manual dispatch, or specific repository dispatch events. It checks out the 'data' and 'main' branches, stages generated data, rewrites the 'data' branch, and generates directory listings before deploying to GitHub Pages.",
+    "execution_method": "Triggered on: push to 'data' branch, workflow_dispatch, repository_dispatch with type 'Web: Directory listing'",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-web-directory.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-web-directory.yml"
+  },
+  {
+    "name": "infrastructure-download-external.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: workflow_dispatch, workflow_call",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/infrastructure-download-external.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/infrastructure-download-external.yml"
+  },
+  {
+    "name": "infrastructure-mirror-repository-artifacts.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: workflow_dispatch, repository_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/infrastructure-mirror-repository-artifacts.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/infrastructure-mirror-repository-artifacts.yml"
+  },
+  {
+    "name": "infrastructure-repository-update.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: workflow_dispatch, repository_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/infrastructure-repository-update.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/infrastructure-repository-update.yml"
+  },
+  {
+    "name": "infrastructure-reusable-mirror.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: workflow_call",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/infrastructure-reusable-mirror.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/infrastructure-reusable-mirror.yml"
+  },
+  {
+    "name": "infrastructure-update-redirector-config.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: repository_dispatch, workflow_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/infrastructure-update-redirector-config.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/infrastructure-update-redirector-config.yml"
+  },
+  {
+    "name": "label-auto-on-pr.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: pull_request_target",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/label-auto-on-pr.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/label-auto-on-pr.yml"
+  },
+  {
+    "name": "label-listen-pr-review.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: pull_request_review",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/label-listen-pr-review.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/label-listen-pr-review.yml"
+  },
+  {
+    "name": "label-pr-on-approval.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: workflow_run",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/label-pr-on-approval.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/label-pr-on-approval.yml"
+  },
+  {
+    "name": "label-sync.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 15 per 60s exceeded for UserByModelByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: workflow_dispatch, push, pull_request",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/label-sync.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/label-sync.yml"
+  },
+  {
+    "name": "maintenance-clean-workflow-logs.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: schedule, workflow_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/maintenance-clean-workflow-logs.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/maintenance-clean-workflow-logs.yml"
+  },
+  {
+    "name": "maintenance-watchdog.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: push, schedule, workflow_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/maintenance-watchdog.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/maintenance-watchdog.yml"
+  },
+  {
+    "name": "monitoring-runners-status.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: push, schedule, workflow_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/monitoring-runners-status.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/monitoring-runners-status.yml"
+  },
+  {
+    "name": "reporting-release-summary.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: workflow_dispatch, schedule",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/reporting-release-summary.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/reporting-release-summary.yml"
+  },
+  {
+    "name": "repository-status.yaml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: push, repository_dispatch",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/repository-status.yaml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/repository-status.yaml"
+  },
+  {
+    "name": "testing-wireless-performance-test.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: workflow_dispatch, schedule",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/testing-wireless-performance-test.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/testing-wireless-performance-test.yml"
+  },
+  {
+    "name": "validate-board-assets.yml",
+    "description": "AI description failed: OpenAI API error 429: {\"error\":{\"code\":\"RateLimitReached\",\"message\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\",\"details\":\"Rate limit of 24 per 60s exceeded for UserByMinute. Please wait 29 seconds before retrying.\"}}",
+    "execution_method": "Triggered on: pull_request",
+    "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/validate-board-assets.yml",
+    "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/validate-board-assets.yml"
+  }
+]
