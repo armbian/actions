@@ -491,29 +491,17 @@
       // If baseUrl already includes "actions", use it directly
       const actionsDir = baseUrl.endsWith('/actions') ? baseUrl : `${baseUrl.replace(/\/$/, '')}/actions`;
 
-      // Try to fetch multiple repository reports
-      const indexUrl = `${actionsDir.replace(/\/$/, '')}/index.json`;
       let repoList = [];
 
-      try {
-        // Try to get an index file first
-        const indexRes = await fetch(indexUrl, { cache: "no-store" });
-        if (indexRes.ok) {
-          const index = await indexRes.json();
-          repoList = index.repositories || [];
-        }
-      } catch {}
-
-      // If no index, try to discover JSON files
-      if (repoList.length === 0) {
-        // Common pattern: actions-report-{repo}.json
-        const tryRepos = ['armbian.github.io', 'build', 'documentation', 'userland'];
-        for (const repo of tryRepos) {
-          try {
-            const url = `${actionsDir}/actions-report-${repo}.json`;
-            const res = await fetch(url, { method: 'HEAD', cache: "no-store" });
-            if (res.ok) repoList.push(repo);
-          } catch {}
+      // Try to discover JSON files by HEAD requests
+      const tryRepos = ['armbian.github.io', 'build', 'documentation', 'userland'];
+      for (const repo of tryRepos) {
+        try {
+          const url = `${actionsDir}/actions-report-${repo}.json`;
+          const res = await fetch(url, { method: 'HEAD', cache: "no-store" });
+          if (res.ok) repoList.push(repo);
+        } catch (e) {
+          // Ignore errors, just continue trying other repos
         }
       }
 
@@ -544,6 +532,8 @@
         status_link: x.status_link ?? null,
         script_link: x.script_link ?? null,
         filelength: Number(x.filelength ?? 0),
+        executed: x.executed ?? null,
+        edited: x.edited ?? null,
         repository: json.repository || "",
         organization: json.organization || "",
       }));
