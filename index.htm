@@ -356,20 +356,8 @@
       <div class="title">
         <div class="title-row">
           <img src="https://raw.githubusercontent.com/armbian/.github/master/profile/logosmall.png" alt="Armbian" class="logo" />
-          <h1>
-            GitHub Actions Report Viewer
-            <span class="badge" id="badgeCount">0 items</span>
-          </h1>
+          <h1>Armbian GitHub Actions</h1>
         </div>
-        <p class="subtitle">
-          Browse GitHub Actions workflows with tabs, search, and quick links.
-          Default source: <span class="mono">data</span>
-        </p>
-      </div>
-
-      <div class="controls">
-        <input class="input" id="sourceUrl" value="data" placeholder="URL or path to JSON directory (e.g. data)" />
-        <button class="btn primary" id="btnLoad">Load All</button>
       </div>
     </div>
 
@@ -579,12 +567,9 @@
     }
 
     async function reload(){
-      const url = el("sourceUrl").value.trim();
       try{
-        toast("Loading JSON(s)…");
-
-        // Try loading as directory first
-        const reports = await loadMultipleReports(url);
+        // Auto-load from data/ directory
+        const reports = await loadMultipleReports("data");
 
         if (reports.length > 0) {
           // Multi-repository mode - pass repo/org from report metadata
@@ -601,46 +586,22 @@
             repositories.map(r => `<option value="${r}">${r}</option>`).join('');
           el("repoCount").textContent = `${repositories.length} repos`;
           el("repoSelector").style.display = "flex";
-        } else {
-          // Single file mode - try to extract repo from URL
-          const raw = await loadJsonFrom(url);
-
-          // Try to extract repo name from URL path
-          let repoOverride = null;
-          const urlMatch = url.match(/actions-report-([^/]+)\.json/);
-          if (urlMatch) {
-            repoOverride = urlMatch[1];
-          }
-
-          allData = normalizeActions(raw, repoOverride);
-          repositories = [...new Set(allData.map(a => a.repository))];
-
-          if (repositories.length > 0 && repositories[0] !== "unknown") {
-            el("repoSelect").innerHTML = '<option value="">All Repositories</option>' +
-              repositories.map(r => `<option value="${r}">${r}</option>`).join('');
-            el("repoCount").textContent = `${repositories.length} repos`;
-            el("repoSelector").style.display = "flex";
-          } else {
-            el("repoSelector").style.display = "none";
-          }
         }
 
         selectedRepo = "";
         data = [...allData];
         view = [...data];
         renderAll();
-        toast(`Loaded ${data.length} items from ${repositories.length} repositories`);
+        console.log(`Loaded ${data.length} items from ${repositories.length} repositories`);
       }catch(err){
         allData = [];
         data = [];
         view = [];
         repositories = [];
         renderAll();
-        toast(`Failed to load: ${err.message}`, "error");
+        console.error(`Failed to load: ${err.message}`);
       }
     }
-
-    el("btnLoad").addEventListener("click", reload);
 
     // Repository selector change
     el("repoSelect").addEventListener("change", (e) => {
@@ -742,16 +703,11 @@
       const failed = data.filter(x => (x.description || "").toLowerCase().includes("ai description failed")).length;
       const noDesc = data.filter(x => !(x.description || "").trim()).length;
 
-      const org = el("badgeCount").dataset.org || "—";
-      const repo = el("badgeCount").dataset.repo || "—";
-
-      el("badgeCount").textContent = `${total} items`;
-
       el("stats").innerHTML = `
-        <div class="stat"><div class="k">Organization</div><div class="v">${escapeHtml(org)}</div></div>
-        <div class="stat"><div class="k">Repository</div><div class="v">${escapeHtml(repo)}</div></div>
-        <div class="stat"><div class="k">Total</div><div class="v">${total}</div></div>
-        <div class="stat"><div class="k">With status link</div><div class="v">${withStatus}</div></div>
+        <div class="stat"><div class="k">Total Workflows</div><div class="v">${total}</div></div>
+        <div class="stat"><div class="k">With Status Link</div><div class="v">${withStatus}</div></div>
+        <div class="stat"><div class="k">Repositories</div><div class="v">${repositories.length}</div></div>
+        <div class="stat"><div class="k">Selected</div><div class="v">${selectedRepo || "All"}</div></div>
       `;
     }
 
