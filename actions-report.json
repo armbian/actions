@@ -1,0 +1,316 @@
+{
+  "organization": "armbian",
+  "repository": "armbian.github.io",
+  "actions": [
+    {
+      "name": "Assets: Generate board thumbnails",
+      "filename": "assets-generate-board-thumbnails.yml",
+      "description": "This workflow generates thumbnails for board images and vendor logos by processing files in specified directories. It builds JSON matrices for boards and vendors, processes images to create thumbnails of various widths, and uploads the results to cache servers. Additionally, it generates a summary report detailing the processing outcomes and comparisons between images and configurations.",
+      "execution_method": "push, workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/assets-generate-board-thumbnails.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/assets-generate-board-thumbnails.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Community: Enforce triage role",
+      "filename": "community-enforce-triage-role.yml",
+      "description": "This workflow enforces the 'All-repository triage' role for eligible organization members by checking their current role assignments and assigning the role where necessary. It can operate in a dry-run mode to simulate changes without making any actual modifications. The results are summarized in a table format, indicating the actions taken for each user.",
+      "execution_method": "schedule, workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/community-enforce-triage-role.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/community-enforce-triage-role.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Community: Invite contributors",
+      "filename": "community-invite-contributors.yml",
+      "description": "This workflow collects unique contributors from multiple Armbian repositories based on recent pull requests and checks their membership status in the Armbian organization. It identifies eligible users who are not already members and invites them, unless run in dry-run mode, in which case it only displays the eligible users without sending invitations.",
+      "execution_method": "schedule, workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/community-invite-contributors.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/community-invite-contributors.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Data: Update base-files info",
+      "filename": "data-update-base-files-info.yml",
+      "description": "This workflow updates base-files information by running a Python script that generates a JSON file containing package details. It checks out the repository, sets up a Python environment, installs necessary dependencies, and commits any changes to the repository. Additionally, it triggers a directory listing event upon completion.",
+      "execution_method": "workflow_dispatch, repository_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-base-files-info.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-base-files-info.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Data: Update download index",
+      "filename": "data-update-download-index.yml",
+      "description": "This workflow generates a JSON index of Armbian images and downloads associated torrent files. It checks out multiple repositories, installs necessary dependencies, and executes a script to create the JSON file. The workflow then compresses the downloaded torrent files and commits any changes to the GitHub Pages repository.",
+      "execution_method": "repository_dispatch, workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-download-index.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-download-index.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Data: Update image-info JSON",
+      "filename": "data-update-image-info.yml",
+      "description": "This workflow updates the image-info JSON file by producing a new inventory from a build process and committing any changes to a specified repository. It checks out necessary repositories, runs a script to generate the inventory, and pushes updates if there are changes. Additionally, it triggers another action for further processing after the update.",
+      "execution_method": "schedule, workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-image-info.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-image-info.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Data: Update Jira excerpt",
+      "filename": "data-update-jira-excerpt.yml",
+      "description": "This workflow updates HTML files with Jira issue summaries and statuses by fetching data from the Armbian Jira API. It generates two HTML files: one for current issues and another for planned issues, based on specific fix versions and statuses. The generated files are then committed to the repository if there are any changes.",
+      "execution_method": "repository_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-jira-excerpt.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-jira-excerpt.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Data: Update partners data",
+      "filename": "data-update-partners-data.yml",
+      "description": "This workflow fetches partner data from Zoho Bigin, generates JSON files for platinum, gold, and silver partners, and enriches maintainer data with GitHub avatars. It commits the generated JSON files to the armbian.github.io repository and triggers another action for updating base-files information.",
+      "execution_method": "repository_dispatch, workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-partners-data.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-partners-data.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Data: Update RPI imager JSON",
+      "filename": "data-update-rpi-imager-json.yml",
+      "description": "This workflow generates a JSON index file for RPI images by checking out multiple repositories, installing dependencies, and processing image data from a remote server. It constructs a structured JSON file containing details about the images, including their URLs, sizes, and checksums, and commits the changes to a specified repository if any updates are made.",
+      "execution_method": "repository_dispatch, workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/data-update-rpi-imager-json.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/data-update-rpi-imager-json.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "AI Actions Report",
+      "filename": "generate-actions-report.yml",
+      "description": "This workflow generates a report on GitHub Actions usage by scanning a specified folder, utilizing OpenAI's GPT model to analyze the data. It installs necessary dependencies, executes a script to create the report, and then displays and uploads the generated report as an artifact.",
+      "execution_method": "push, workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-actions-report.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-actions-report.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Download latest keyrings for Debian & Ubuntu",
+      "filename": "generate-keyring-data.yaml",
+      "description": "This workflow downloads the latest keyring data for Debian and Ubuntu, retrieves the necessary package URLs, and saves the downloaded files to a specific directory in the repository. It also creates symlinks for the latest keyrings and commits any changes made to the repository. Finally, it triggers another action to update related components.",
+      "execution_method": "workflow_dispatch, repository_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-keyring-data.yaml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-keyring-data.yaml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Generate motd for Linux OS",
+      "filename": "generate-motd.yaml",
+      "description": "This workflow generates a message of the day (MOTD) for Linux OS by checking out two repositories, processing a JSON file to extract specific fields, and saving the output to a text file. It then commits any changes to the repository and triggers another action for a keyrings update if necessary.",
+      "execution_method": "repository_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-motd.yaml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-motd.yaml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Infrastructure: Cache servers JSONs",
+      "filename": "generate-servers-jsons.yml",
+      "description": "This workflow generates JSON files from data retrieved from a NetBox API, specifically for different types of servers categorized as download, cache, and upload. It processes the data using jq to format it and saves the output in specified JSON files. Additionally, it commits any changes to a designated branch and triggers another workflow for updating a web index.",
+      "execution_method": "workflow_dispatch, schedule",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-servers-jsons.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-servers-jsons.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Data: Update Torrent Trackers",
+      "filename": "generate-torrent-tracker-lists.yml",
+      "description": "This workflow generates a list of torrent tracker servers by collecting and processing data from a specified repository. It prepares the list by filtering and formatting the tracker entries, then commits the updated list to a designated branch in the repository. Additionally, it triggers another workflow to update a web index with the new tracker data.",
+      "execution_method": "workflow_dispatch, schedule",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-torrent-tracker-lists.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-torrent-tracker-lists.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Web: Directory listing",
+      "filename": "generate-web-directory.yml",
+      "description": "This workflow rebuilds a data branch by syncing content from a main branch and generating directory listings for deployment to GitHub Pages. It checks out the necessary branches, stages generated data, rewrites the data branch with updated content, and uploads the directory listings as an artifact. Finally, it deploys the updated content to GitHub Pages.",
+      "execution_method": "push to data branch, workflow_dispatch, repository_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/generate-web-directory.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/generate-web-directory.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Sync 3rd party packages",
+      "filename": "infrastructure-download-external.yml",
+      "description": "This workflow synchronizes third-party packages by restoring permissions, purging old packages, and mirroring new packages from a specified repository. It builds a matrix of configurations based on the provided inputs and manages the installation of GPG keys, SSH keys, and the downloading of necessary files. The workflow also handles the cleanup of temporary files and directories after processing.",
+      "execution_method": "workflow_dispatch, workflow_call",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/infrastructure-download-external.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/infrastructure-download-external.yml",
+      "edited": "2026-01-13T20:14:21.557Z",
+      "executed": null
+    },
+    {
+      "name": "Infrastructure: Mirror artifacts",
+      "filename": "infrastructure-mirror-repository-artifacts.yml",
+      "description": "This workflow mirrors artifacts from a specified repository, splits the JSON data of these artifacts into smaller parts, and uploads them. It also cleans up older files on remote servers based on the latest artifact tags and CDN tags. The workflow includes steps for SSH key management, fetching release information, and orchestrating the upload and cleanup processes.",
+      "execution_method": "workflow_dispatch, repository_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/infrastructure-mirror-repository-artifacts.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/infrastructure-mirror-repository-artifacts.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Infrastructure: Repository update",
+      "filename": "infrastructure-repository-update.yml",
+      "description": "This workflow updates an infrastructure repository by downloading external packages, managing file structures, generating reports, and preparing repositories for deployment. It includes steps for checking membership, copying files, fixing permissions, and updating repositories with .deb files. Additionally, it handles cleanup of input directories based on specified conditions.",
+      "execution_method": "workflow_dispatch, repository_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/infrastructure-repository-update.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/infrastructure-repository-update.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Infrastructure: Reusable mirror",
+      "filename": "infrastructure-reusable-mirror.yml",
+      "description": "This workflow defines a reusable process for downloading artifacts, checking API rate limits, installing SSH keys, and uploading files to a CDN based on a deployment matrix. It retrieves device information from a specified input file and uses it to manage the deployment of artifacts to defined servers. The workflow also includes steps for ensuring API usage is within limits before proceeding with uploads.",
+      "execution_method": "workflow_call",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/infrastructure-reusable-mirror.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/infrastructure-reusable-mirror.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Infrastructure: Update redirector",
+      "filename": "infrastructure-update-redirector-config.yml",
+      "description": "This workflow updates redirector configurations by downloading and comparing package and image mirrors from a specified source of truth. It checks for synchronization between the local and remote repositories, uploads artifacts for any discrepancies, and generates YAML redirector configurations based on the results. The workflow also handles multiple platforms and types of data, ensuring that the latest information is reflected in the redirector setup.",
+      "execution_method": "repository_dispatch, workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/infrastructure-update-redirector-config.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/infrastructure-update-redirector-config.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Labels: auto on PR",
+      "filename": "label-auto-on-pr.yml",
+      "description": "This workflow automatically manages labels on pull requests by assigning labels based on PR size, file categories, and creation date. It removes the 'Ready to merge' label when a PR is updated and adds quarterly labels based on the month of creation. The workflow ensures that the appropriate labels are applied consistently to enhance PR organization and tracking.",
+      "execution_method": "pull_request_target",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/label-auto-on-pr.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/label-auto-on-pr.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Label: listen PR review",
+      "filename": "label-listen-pr-review.yml",
+      "description": "This workflow listens for approved pull request reviews and saves the associated pull request number to a file. It then uploads this file as an artifact for further use or reference.",
+      "execution_method": "pull_request_review",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/label-listen-pr-review.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/label-listen-pr-review.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Label: on PR approval",
+      "filename": "label-pr-on-approval.yml",
+      "description": "This workflow labels a pull request as 'Ready to merge' when it receives approval and removes specific review-related labels. It downloads the pull request number from a previous workflow run and uses it to apply the appropriate labels based on the approval status. The workflow also handles the removal of certain labels if the approval is successful.",
+      "execution_method": "workflow_run",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/label-pr-on-approval.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/label-pr-on-approval.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Labels: synhronize",
+      "filename": "label-sync.yml",
+      "description": "This workflow synchronizes GitHub issue and pull request labels based on a specified YAML configuration file. It reads the label definitions from '.github/labels.yml' and applies them to relevant issues and pull requests, while excluding certain labels as defined in the configuration. The synchronization occurs in a dry-run mode for pull requests to preview changes before applying them.",
+      "execution_method": "workflow_dispatch, push, pull_request",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/label-sync.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/label-sync.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Maintenance: Clean workflow logs",
+      "filename": "maintenance-clean-workflow-logs.yml",
+      "description": "This workflow is designed to clean up workflow logs by deleting runs that are older than a specified number of days. It can be configured to retain a certain number of recent runs, ensuring that only the necessary logs are kept. The default setting removes logs older than 21 days and retains none.",
+      "execution_method": "schedule, workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/maintenance-clean-workflow-logs.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/maintenance-clean-workflow-logs.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Maintenance: Watchdog (cronjob)",
+      "filename": "maintenance-watchdog.yml",
+      "description": "This workflow monitors specific GitHub Actions for failures and attempts to restart them up to three times if they fail or are canceled. It operates on a set of predefined scripts, checking their execution status and rerunning them as necessary. The workflow is designed to ensure reliability and reduce manual intervention for failed actions.",
+      "execution_method": "push, schedule (cron), workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/maintenance-watchdog.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/maintenance-watchdog.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Monitoring: Runners status",
+      "filename": "monitoring-runners-status.yml",
+      "description": "This workflow checks the status of self-hosted runners in a GitHub organization and generates a summary report in HTML format. It retrieves runner information and associated virtual machine details from NetBox, calculates resource usage, and formats the output for visibility in the GitHub Actions UI. Additionally, it verifies permissions for accessing the organization before proceeding with the status check.",
+      "execution_method": "push, schedule, workflow_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/monitoring-runners-status.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/monitoring-runners-status.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Reporting: Release summary",
+      "filename": "reporting-release-summary.yml",
+      "description": "This workflow generates a summary of merged pull requests (PRs) from specified repositories over a defined period. It fetches PR data, compiles it into a Markdown digest, and optionally publishes a GitHub release with the summary. The summary includes a journalistic intro generated by an AI model based on the PR activity.",
+      "execution_method": "workflow_dispatch, schedule",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/reporting-release-summary.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/reporting-release-summary.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Fetch Armbian kernel package versions",
+      "filename": "repository-status.yaml",
+      "description": "This workflow fetches the current and edge versions of the Armbian kernel packages from the Armbian repository, generates corresponding SVG badges, and creates a JSON file with the version information. It then commits any changes to the repository and triggers another action for a message of the day update.",
+      "execution_method": "push, repository_dispatch",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/repository-status.yaml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/repository-status.yaml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Testing: WiFi performance",
+      "filename": "testing-wireless-performance-test.yml",
+      "description": "This workflow performs WiFi performance testing on devices by powering them on, configuring their network settings, running performance tests, and generating a summary report. It retrieves device information from a database, establishes connections, and executes iperf tests to measure network speeds. The results are compiled into a markdown document and uploaded as artifacts, with a subsequent step to update documentation based on the test outcomes.",
+      "execution_method": "workflow_dispatch, schedule",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/testing-wireless-performance-test.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/testing-wireless-performance-test.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    },
+    {
+      "name": "Validate board images & vendor logos",
+      "filename": "validate-board-assets.yml",
+      "description": "This workflow validates board images and vendor logos by checking their integrity and format using ImageMagick. It performs a checkout of the repository and runs a validation script on the specified image directories.",
+      "execution_method": "pull_request",
+      "status_link": "https://github.com/armbian/armbian.github.io/actions/workflows/validate-board-assets.yml",
+      "script_link": "https://github.com/armbian/armbian.github.io/blob/main/.github/workflows/validate-board-assets.yml",
+      "edited": "2026-01-13T20:14:21.558Z",
+      "executed": null
+    }
+  ]
+}
