@@ -253,6 +253,11 @@
       font-weight:600;
       letter-spacing:0.3px;
       text-transform:uppercase;
+      cursor:pointer;
+      transition:opacity 0.2s;
+    }
+    .category-badge:hover{
+      opacity:0.8;
     }
 
     table{
@@ -449,6 +454,7 @@
     let allData = []; // All repository data
     let repositories = []; // List of available repositories
     let selectedRepo = ""; // Currently selected repository
+    let selectedCategory = ""; // Currently selected category
     let data = []; // Currently displayed data (filtered by repo)
     let view = [];
     let sortKey = "name";
@@ -634,6 +640,8 @@
     // Repository selector change
     el("repoSelect").addEventListener("change", (e) => {
       selectedRepo = e.target.value;
+      selectedCategory = ""; // Reset category filter when repository changes
+
       data = selectedRepo
         ? allData.filter(a => a.repository === selectedRepo)
         : [...allData];
@@ -666,6 +674,39 @@
 
       view = filtered;
       renderOverview();
+    }
+
+    function filterByCategory(category){
+      selectedCategory = category;
+
+      // Filter from allData by repository and category
+      let filtered = allData;
+      if (selectedRepo) {
+        filtered = filtered.filter(a => a.repository === selectedRepo);
+      }
+      if (selectedCategory) {
+        filtered = filtered.filter(a => a.category === selectedCategory);
+      }
+
+      data = filtered;
+      view = [...data];
+      renderAll();
+
+      toast(`Filtered by category: ${category}`);
+    }
+
+    function clearCategoryFilter(){
+      if (!selectedCategory) return;
+      selectedCategory = "";
+
+      // Re-apply repository filter only
+      data = selectedRepo
+        ? allData.filter(a => a.repository === selectedRepo)
+        : [...allData];
+      view = [...data];
+      renderAll();
+
+      toast("Category filter cleared");
     }
 
     function applyTableSearch(){
@@ -718,11 +759,16 @@
       const failed = data.filter(x => (x.description || "").toLowerCase().includes("ai description failed")).length;
       const noDesc = data.filter(x => !(x.description || "").trim()).length;
 
+      const categoryHtml = selectedCategory
+        ? `<div class="stat" onclick="clearCategoryFilter()" style="cursor:pointer;"><div class="k">Category</div><div class="v" style="color:#7c5cff;">${selectedCategory} ✕</div></div>`
+        : "";
+
       el("stats").innerHTML = `
         <div class="stat"><div class="k">Total Workflows</div><div class="v">${total}</div></div>
         <div class="stat"><div class="k">With Status Link</div><div class="v">${withStatus}</div></div>
         <div class="stat"><div class="k">Repositories</div><div class="v">${repositories.length}</div></div>
         <div class="stat"><div class="k">Selected</div><div class="v">${selectedRepo || "All"}</div></div>
+        ${categoryHtml}
       `;
     }
 
@@ -782,7 +828,7 @@
 
         // Category badge
         const categoryBadge = item.category && item.category !== "generic"
-          ? `<span class="category-badge">${escapeHtml(item.category)}</span>`
+          ? `<span class="category-badge" onclick="filterByCategory('${escapeHtml(item.category)}')" style="cursor:pointer;" title="Click to filter by ${escapeHtml(item.category)}">${escapeHtml(item.category)}</span>`
           : "";
 
         return `
@@ -791,11 +837,10 @@
               <span>${escapeHtml(item.name)}</span>
               ${execIcon ? `<span class="chip" title="${escapeHtml(exec)}">${execIcon}</span>` : ''}
             </h3>
-            ${categoryBadge ? `<div style="margin-bottom:8px;">${categoryBadge}</div>` : ""}
             <p class="desc">${escapeHtml(desc)}</p>
             ${complexityHtml}
             ${lastExecHtml}
-            <div class="links">${status}${script}</div>
+            <div class="links">${categoryBadge}${status}${script}</div>
           </div>
         `;
       }).join("");
