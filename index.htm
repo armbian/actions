@@ -465,8 +465,12 @@
                   <th data-key="execution_method">Execution</th>
                   <th data-key="description">Description</th>
                   <th data-key="filelength">Size</th>
+                  <th data-key="last_run_status">Status</th>
+                  <th data-key="retry_count">Retries</th>
+                  <th data-key="last_run_duration_seconds">Duration</th>
+                  <th data-key="total_run_time_seconds">Total Time</th>
                   <th data-key="executed">Last Run</th>
-                  <th data-key="status_link">Status</th>
+                  <th data-key="status_link">Link</th>
                   <th data-key="script_link">Script</th>
                 </tr>
               </thead>
@@ -593,6 +597,12 @@
         edited: x.edited ?? null,
         repository: repository,
         organization: organization,
+        // New fields for retry tracking and execution time
+        last_run_status: x.last_run_status ?? null,
+        retry_count: Number(x.retry_count ?? 0),
+        total_run_time_seconds: x.total_run_time_seconds ?? null,
+        last_run_duration_seconds: x.last_run_duration_seconds ?? null,
+        total_runs: Number(x.total_runs ?? 0),
       }));
     }
 
@@ -621,6 +631,25 @@
       if (diffDays < 7) return { text: `${diffDays} days ago`, color: '#7c5cff' };
       if (diffDays < 30) return { text: `${diffDays} days ago`, color: '#f59e0b' };
       return { text: `${diffDays} days ago`, color: '#ef4444' };
+    }
+
+    function formatDuration(seconds){
+      if (!seconds || seconds === 0) return null;
+      if (seconds < 60) return `${seconds}s`;
+      if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+      const hours = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      return `${hours}h ${mins}m`;
+    }
+
+    function getStatusBadge(status){
+      if (!status) return null;
+      const s = status.toLowerCase();
+      if (s === 'success') return { text: 'Success', color: '#2dd4bf', icon: 'lucide:check-circle' };
+      if (s === 'failure') return { text: 'Failed', color: '#ef4444', icon: 'lucide:x-circle' };
+      if (s === 'cancelled') return { text: 'Cancelled', color: '#f59e0b', icon: 'lucide:ban' };
+      if (s === 'pending' || s === 'in_progress' || s === 'queued') return { text: 'Running', color: '#7c5cff', icon: 'lucide:loader-2' };
+      return { text: status, color: '#64748b', icon: 'lucide:help-circle' };
     }
 
     async function reload(){
@@ -850,16 +879,63 @@
           </div>
         ` : '';
 
+        // Build metrics section
+        let metricsHtml = '';
+
         // Last execution info
-        let lastExecHtml = '';
         if (item.executed) {
           const daysInfo = getDaysSinceLast(item.executed);
-          lastExecHtml = `
+          metricsHtml += `
             <div class="complexity" style="margin-top:2px;">
               <span class="iconify" data-icon="lucide:clock" style="font-size:11px;margin-right:2px;"></span>
               <span style="color:${daysInfo.color}">${daysInfo.text}</span>
             </div>
           `;
+        }
+
+        // Last run status
+        if (item.last_run_status) {
+          const badge = getStatusBadge(item.last_run_status);
+          metricsHtml += `
+            <div class="complexity" style="margin-top:2px;">
+              <span class="iconify" data-icon="${badge.icon}" style="font-size:11px;margin-right:2px;color:${badge.color};"></span>
+              <span style="color:${badge.color};font-size:12px;">${badge.text}</span>
+            </div>
+          `;
+        }
+
+        // Retry count with icon
+        if (item.retry_count > 0) {
+          const color = item.retry_count > 2 ? '#ef4444' : item.retry_count > 1 ? '#f59e0b' : '#7c5cff';
+          metricsHtml += `
+            <div class="complexity" style="margin-top:2px;">
+              <span class="iconify" data-icon="lucide:refresh-ccw" style="font-size:11px;margin-right:2px;color:${color};"></span>
+              <span style="color:${color};font-size:12px;">${item.retry_count} retr${item.retry_count === 1 ? 'y' : 'ies'}</span>
+            </div>
+          `;
+        }
+
+        // Duration and total time
+        if (item.last_run_duration_seconds || item.total_run_time_seconds) {
+          const duration = item.last_run_duration_seconds ? formatDuration(item.last_run_duration_seconds) : null;
+          const total = item.total_run_time_seconds ? formatDuration(item.total_run_time_seconds) : null;
+
+          if (duration && total) {
+            const avg = item.retry_count > 0 ? ` (avg ${formatDuration(Math.round(item.total_run_time_seconds / (item.retry_count + 1)))})` : '';
+            metricsHtml += `
+              <div class="complexity" style="margin-top:2px;">
+                <span class="iconify" data-icon="lucide:timer" style="font-size:11px;margin-right:2px;"></span>
+                <span style="font-size:12px;">${total} total${avg}</span>
+              </div>
+            `;
+          } else if (total) {
+            metricsHtml += `
+              <div class="complexity" style="margin-top:2px;">
+                <span class="iconify" data-icon="lucide:timer" style="font-size:11px;margin-right:2px;"></span>
+                <span style="font-size:12px;">${total}</span>
+              </div>
+            `;
+          }
         }
 
         // Category badge
@@ -881,7 +957,7 @@
             </h3>
             <p class="desc">${escapeHtml(desc)}</p>
             ${complexityHtml}
-            ${lastExecHtml}
+            ${metricsHtml}
             <div class="links">${categoryBadge}${status}</div>
           </div>
         `;
@@ -901,7 +977,7 @@
         const badgeUrl = `https://img.shields.io/github/actions/workflow/status/${repoPath}/${workflowFilename}?label=&style=for-the-badge&branch=main&logoColor=white`;
 
         const status = item.status_link
-          ? `<a href="${escapeAttr(item.status_link)}" target="_blank" rel="noopener" class="status-badge-link"><img src="${escapeAttr(badgeUrl)}" alt="Workflow Status" class="status-badge" style="height:20px;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';" /><span style="display:none;"><span class="iconify" data-icon="lucide:external-link"></span></span></a>`
+          ? `<a href="${escapeAttr(item.status_link)}" target="_blank" rel="noopener"><span class="iconify" data-icon="lucide:external-link" style="vertical-align:middle;font-size:14px;"></span></a>`
           : `<span style="opacity:.6;">—</span>`;
         const script = item.script_link
           ? `<a href="${escapeAttr(item.script_link)}" target="_blank" rel="noopener"><span class="iconify" data-icon="lucide:external-link" style="vertical-align:middle;font-size:14px;"></span></a>`
@@ -923,6 +999,50 @@
           `;
         }
 
+        // Last run status badge
+        let statusBadgeHtml = '<span style="opacity:.6;">—</span>';
+        if (item.last_run_status) {
+          const badge = getStatusBadge(item.last_run_status);
+          statusBadgeHtml = `
+            <div style="display:flex;align-items:center;gap:4px;">
+              <span class="iconify" data-icon="${badge.icon}" style="font-size:13px;color:${badge.color};"></span>
+              <span style="font-size:12px;color:${badge.color};font-weight:500;">${badge.text}</span>
+            </div>
+          `;
+        }
+
+        // Retry count display
+        let retryHtml = '<span style="opacity:.6;">0</span>';
+        if (item.retry_count > 0) {
+          const color = item.retry_count > 2 ? '#ef4444' : item.retry_count > 1 ? '#f59e0b' : '#7c5cff';
+          retryHtml = `
+            <div style="display:flex;align-items:center;gap:4px;">
+              <span class="iconify" data-icon="lucide:refresh-ccw" style="font-size:11px;color:${color};"></span>
+              <span style="font-size:12px;color:${color};font-weight:500;">${item.retry_count}</span>
+            </div>
+          `;
+        }
+
+        // Duration display
+        let durationHtml = '<span style="opacity:.6;">—</span>';
+        if (item.last_run_duration_seconds) {
+          const duration = formatDuration(item.last_run_duration_seconds);
+          durationHtml = `<span style="font-size:12px;">${duration}</span>`;
+        }
+
+        // Total time display
+        let totalTimeHtml = '<span style="opacity:.6;">—</span>';
+        if (item.total_run_time_seconds && item.total_run_time_seconds > 0) {
+          const total = formatDuration(item.total_run_time_seconds);
+          const avg = item.retry_count > 0 ? `<span style="opacity:.6;font-size:10px;"> avg ${formatDuration(Math.round(item.total_run_time_seconds / (item.retry_count + 1)))}</span>` : '';
+          totalTimeHtml = `
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <span style="font-size:12px;font-weight:500;">${total}</span>
+              ${avg}
+            </div>
+          `;
+        }
+
         // Last execution display
         let lastExecHtml = '<span style="opacity:.6;">—</span>';
         if (item.executed) {
@@ -940,10 +1060,13 @@
             <td><div>${escapeHtml(item.name)}</div></td>
             <td><div>${execIcon}${escapeHtml(item.execution_method || "—")}</div></td>
             <td>
-              <div>${escapeHtml(shorten(item.description || "—", 220))}</div>
-              <div class="small">${escapeHtml(item.description && item.description.length > 220 ? "… truncated" : "")}</div>
+              <div>${escapeHtml(shorten(item.description || "—", 120))}</div>
             </td>
             <td>${sizeHtml}</td>
+            <td>${statusBadgeHtml}</td>
+            <td>${retryHtml}</td>
+            <td>${durationHtml}</td>
+            <td>${totalTimeHtml}</td>
             <td>${lastExecHtml}</td>
             <td>${status}</td>
             <td>${script}</td>
@@ -951,7 +1074,7 @@
         `;
       }).join("");
 
-      el("tbody").innerHTML = rows || `<tr><td colspan="7" style="opacity:.7;">No rows.</td></tr>`;
+      el("tbody").innerHTML = rows || `<tr><td colspan="11" style="opacity:.7;">No rows.</td></tr>`;
       el("rawBox").textContent = JSON.stringify(data, null, 2);
     }
 
