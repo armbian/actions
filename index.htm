@@ -243,6 +243,18 @@
     .status-badge-link{ text-decoration:none; display:inline-flex; align-items:center; }
     .status-badge{ height:20px; border-radius:12px; }
 
+    .category-badge{
+      display:inline-block;
+      padding:3px 10px;
+      border-radius:12px;
+      background:linear-gradient(135deg, #7c5cff 0%, #6366f1 100%);
+      color:#fff;
+      font-size:11px;
+      font-weight:600;
+      letter-spacing:0.3px;
+      text-transform:uppercase;
+    }
+
     table{
       width:100%;
       border-collapse:separate;
@@ -767,12 +779,18 @@
           `;
         }
 
+        // Category badge
+        const categoryBadge = item.category && item.category !== "generic"
+          ? `<span class="category-badge">${escapeHtml(item.category)}</span>`
+          : "";
+
         return `
           <div class="card">
             <h3>
               <span>${escapeHtml(item.name)}</span>
               ${execIcon ? `<span class="chip" title="${escapeHtml(exec)}">${execIcon}</span>` : ''}
             </h3>
+            ${categoryBadge ? `<div style="margin-bottom:8px;">${categoryBadge}</div>` : ""}
             <p class="desc">${escapeHtml(desc)}</p>
             ${complexityHtml}
             ${lastExecHtml}
