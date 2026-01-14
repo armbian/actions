@@ -535,45 +535,62 @@
 
     async function loadMultipleReports(baseUrl){
       // GitHub Pages serves files from data/ directory directly
-      // (static.yml copies them from data-source/data/actions/*.json to data/)
+      // Load all actions-report-*.json files
       const dataDir = baseUrl.replace(/\/$/, '');
 
       console.log(`[loadMultipleReports] Looking for reports in: ${dataDir}`);
 
-      let repoList = [];
-
-      // Try to discover JSON files by HEAD requests
-      const tryRepos = ['armbian.github.io', 'build', 'documentation', 'userland'];
-      for (const repo of tryRepos) {
-        try {
-          const url = `${dataDir}/actions-report-${repo}.json`;
-          const res = await fetch(url, { method: 'HEAD', cache: "no-store" });
-          if (res.ok) {
-            console.log(`[loadMultipleReports] Found: ${repo}`);
-            repoList.push(repo);
-          } else {
-            console.log(`[loadMultipleReports] Not found (HTTP ${res.status}): ${repo}`);
-          }
-        } catch (e) {
-          console.log(`[loadMultipleReports] Error checking ${repo}:`, e.message);
-        }
-      }
-
-      console.log(`[loadMultipleReports] Discovered ${repoList.length} repositories:`, repoList);
-
-      // Load all repository reports
+      // Try to load from a list file that contains all JSON files
       const reports = [];
-      for (const repo of repoList) {
-        try {
-          const url = `${dataDir}/actions-report-${repo}.json`;
-          const json = await loadJsonFrom(url);
-          reports.push({ repo, data: json });
-          console.log(`[loadMultipleReports] Loaded: ${repo} with ${json.actions?.length || 0} actions`);
-        } catch (e) {
-          console.warn(`[loadMultipleReports] Failed to load ${repo}:`, e.message);
+
+      try {
+        // First, try to fetch index.json which should contain list of all files
+        const indexUrl = `${dataDir}/index.json`;
+        const indexRes = await fetch(indexUrl, { cache: "no-store" });
+
+        if (indexRes.ok) {
+          const fileIndex = await indexRes.json();
+          console.log(`[loadMultipleReports] Found index.json with ${fileIndex.files?.length || 0} files`);
+
+          // Load each JSON file from the index
+          const jsonFiles = fileIndex.files || [];
+          for (const fileName of jsonFiles) {
+            if (!fileName.endsWith('.json')) continue;
+            try {
+              const url = `${dataDir}/${fileName}`;
+              const json = await loadJsonFrom(url);
+              // Extract repo name from filename (actions-report-REPO.json -> REPO)
+              const repo = fileName.replace(/^actions-report-/, '').replace(/\.json$/, '');
+              reports.push({ repo, data: json });
+              console.log(`[loadMultipleReports] Loaded: ${repo} with ${json.actions?.length || 0} actions`);
+            } catch (e) {
+              console.warn(`[loadMultipleReports] Failed to load ${fileName}:`, e.message);
+            }
+          }
+        } else {
+          console.log(`[loadMultipleReports] No index.json found (HTTP ${indexRes.status})`);
+        }
+      } catch (e) {
+        console.log(`[loadMultipleReports] No index available:`, e.message);
+      }
+
+      // Fallback: try common repo names if no index
+      if (reports.length === 0) {
+        console.log(`[loadMultipleReports] No reports from index, trying fallback list`);
+        const fallbackRepos = ['armbian.github.io', 'build', 'imager', 'os', 'sdk', 'documentation', 'shallow', 'docker-armbian-build', 'configng'];
+        for (const repo of fallbackRepos) {
+          try {
+            const url = `${dataDir}/actions-report-${repo}.json`;
+            const json = await loadJsonFrom(url);
+            reports.push({ repo, data: json });
+            console.log(`[loadMultipleReports] Loaded: ${repo} with ${json.actions?.length || 0} actions`);
+          } catch (e) {
+            // Silently skip missing files
+          }
         }
       }
 
+      console.log(`[loadMultipleReports] Total loaded: ${reports.length} repositories`);
       return reports;
     }
 
