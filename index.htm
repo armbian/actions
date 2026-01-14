@@ -541,6 +541,7 @@
       return actions.map((x, idx) => ({
         name: String(x.name ?? `item-${idx}`),
         filename: String(x.filename ?? x.name ?? `item-${idx}`),
+        category: String(x.category ?? "generic"),
         description: String(x.description ?? ""),
         execution_method: String(x.execution_method ?? ""),
         status_link: x.status_link ?? null,
