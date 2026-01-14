@@ -487,9 +487,11 @@
 
     async function loadMultipleReports(baseUrl){
       // Determine the actions directory based on the base URL
-      // If baseUrl is "data", look in "data/actions"
-      // If baseUrl already includes "actions", use it directly
+      // If baseUrl already ends with '/actions', use it directly
+      // Otherwise, append '/actions' to the baseUrl
       const actionsDir = baseUrl.endsWith('/actions') ? baseUrl : `${baseUrl.replace(/\/$/, '')}/actions`;
+
+      console.log(`[loadMultipleReports] Looking for reports in: ${actionsDir}`);
 
       let repoList = [];
 
@@ -499,11 +501,18 @@
         try {
           const url = `${actionsDir}/actions-report-${repo}.json`;
           const res = await fetch(url, { method: 'HEAD', cache: "no-store" });
-          if (res.ok) repoList.push(repo);
+          if (res.ok) {
+            console.log(`[loadMultipleReports] Found: ${repo}`);
+            repoList.push(repo);
+          } else {
+            console.log(`[loadMultipleReports] Not found (HTTP ${res.status}): ${repo}`);
+          }
         } catch (e) {
-          // Ignore errors, just continue trying other repos
+          console.log(`[loadMultipleReports] Error checking ${repo}:`, e.message);
         }
       }
+
+      console.log(`[loadMultipleReports] Discovered ${repoList.length} repositories:`, repoList);
 
       // Load all repository reports
       const reports = [];
@@ -512,17 +521,21 @@
           const url = `${actionsDir}/actions-report-${repo}.json`;
           const json = await loadJsonFrom(url);
           reports.push({ repo, data: json });
+          console.log(`[loadMultipleReports] Loaded: ${repo} with ${json.actions?.length || 0} actions`);
         } catch (e) {
-          console.warn(`Failed to load ${repo}:`, e.message);
+          console.warn(`[loadMultipleReports] Failed to load ${repo}:`, e.message);
         }
       }
 
       return reports;
     }
 
-    function normalizeActions(json){
+    function normalizeActions(json, repoOverride = null, orgOverride = null){
       // Handle new hierarchical structure: { organization, repository, actions }
+      // OR old flat format: just an array of actions
       const actions = json.actions || json;
+      const repository = repoOverride || json.repository || "unknown";
+      const organization = orgOverride || json.organization || "unknown";
 
       return actions.map((x, idx) => ({
         name: String(x.name ?? `item-${idx}`),
@@ -534,8 +547,8 @@
         filelength: Number(x.filelength ?? 0),
         executed: x.executed ?? null,
         edited: x.edited ?? null,
-        repository: json.repository || "",
-        organization: json.organization || "",
+        repository: repository,
+        organization: organization,
       }));
     }
 
@@ -575,12 +588,12 @@
         const reports = await loadMultipleReports(url);
 
         if (reports.length > 0) {
-          // Multi-repository mode
-          allData = reports.flatMap(r => normalizeActions(r.data).map(a => ({
-            ...a,
-            repository: r.data.repository || a.repository,
-            organization: r.data.organization || a.organization,
-          })));
+          // Multi-repository mode - pass repo/org from report metadata
+          allData = reports.flatMap(r => {
+            const repoName = r.repo; // Extract from filename
+            const orgName = r.data.organization || "armbian";
+            return normalizeActions(r.data, repoName, orgName);
+          });
 
           repositories = [...new Set(allData.map(a => a.repository))];
 
@@ -590,12 +603,20 @@
           el("repoCount").textContent = `${repositories.length} repos`;
           el("repoSelector").style.display = "flex";
         } else {
-          // Single file mode
+          // Single file mode - try to extract repo from URL
           const raw = await loadJsonFrom(url);
-          allData = normalizeActions(raw);
+
+          // Try to extract repo name from URL path
+          let repoOverride = null;
+          const urlMatch = url.match(/actions-report-([^/]+)\.json/);
+          if (urlMatch) {
+            repoOverride = urlMatch[1];
+          }
+
+          allData = normalizeActions(raw, repoOverride);
           repositories = [...new Set(allData.map(a => a.repository))];
 
-          if (repositories.length > 0) {
+          if (repositories.length > 0 && repositories[0] !== "unknown") {
             el("repoSelect").innerHTML = '<option value="">All Repositories</option>' +
               repositories.map(r => `<option value="${r}">${r}</option>`).join('');
             el("repoCount").textContent = `${repositories.length} repos`;
