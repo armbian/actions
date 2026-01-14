@@ -486,12 +486,11 @@
     }
 
     async function loadMultipleReports(baseUrl){
-      // Determine the actions directory based on the base URL
-      // If baseUrl already ends with '/actions', use it directly
-      // Otherwise, append '/actions' to the baseUrl
-      const actionsDir = baseUrl.endsWith('/actions') ? baseUrl : `${baseUrl.replace(/\/$/, '')}/actions`;
+      // GitHub Pages serves files from data/ directory directly
+      // (static.yml copies them from data-source/data/actions/*.json to data/)
+      const dataDir = baseUrl.replace(/\/$/, '');
 
-      console.log(`[loadMultipleReports] Looking for reports in: ${actionsDir}`);
+      console.log(`[loadMultipleReports] Looking for reports in: ${dataDir}`);
 
       let repoList = [];
 
@@ -499,7 +498,7 @@
       const tryRepos = ['armbian.github.io', 'build', 'documentation', 'userland'];
       for (const repo of tryRepos) {
         try {
-          const url = `${actionsDir}/actions-report-${repo}.json`;
+          const url = `${dataDir}/actions-report-${repo}.json`;
           const res = await fetch(url, { method: 'HEAD', cache: "no-store" });
           if (res.ok) {
             console.log(`[loadMultipleReports] Found: ${repo}`);
@@ -518,7 +517,7 @@
       const reports = [];
       for (const repo of repoList) {
         try {
-          const url = `${actionsDir}/actions-report-${repo}.json`;
+          const url = `${dataDir}/actions-report-${repo}.json`;
           const json = await loadJsonFrom(url);
           reports.push({ repo, data: json });
           console.log(`[loadMultipleReports] Loaded: ${repo} with ${json.actions?.length || 0} actions`);
