@@ -338,14 +338,22 @@
     }
 
     .logo{
-      height:40px;
+      height:48px;
       width:auto;
-      vertical-align:middle;
-      margin-right:12px;
+      display:block;
+      margin:0 auto 12px auto;
     }
     .title-row{
       display:flex;
+      flex-direction:column;
       align-items:center;
+      text-align:center;
+    }
+    .title-row h1{
+      font-size:16px;
+      font-weight:500;
+      margin:0;
+      letter-spacing:0.3px;
     }
   </style>
 </head>
@@ -386,9 +394,6 @@
 
           <div class="filterbar">
             <input id="q" class="search" placeholder="Search by name / description / execution method…" />
-            <button class="pill active" id="pillAll" data-filter="all">All</button>
-            <button class="pill" id="pillHasStatus" data-filter="hasStatus">Has status link</button>
-            <button class="pill" id="pillMissingDesc" data-filter="missingDesc">Missing/failed description</button>
           </div>
 
           <div class="grid" id="cards"></div>
@@ -436,7 +441,6 @@
     let selectedRepo = ""; // Currently selected repository
     let data = []; // Currently displayed data (filtered by repo)
     let view = [];
-    let activeFilter = "all";
     let sortKey = "name";
     let sortDir = 1; // 1 asc, -1 desc
 
@@ -568,6 +572,10 @@
 
     async function reload(){
       try{
+        // Get URL parameter for repository selection
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedRepo = urlParams.get('repo') || "";
+
         // Auto-load from data/ directory
         const reports = await loadMultipleReports("data");
 
@@ -586,10 +594,19 @@
             repositories.map(r => `<option value="${r}">${r}</option>`).join('');
           el("repoCount").textContent = `${repositories.length} repos`;
           el("repoSelector").style.display = "flex";
+
+          // Set selected repository from URL parameter if valid
+          if (requestedRepo && repositories.includes(requestedRepo)) {
+            selectedRepo = requestedRepo;
+            el("repoSelect").value = requestedRepo;
+          } else {
+            selectedRepo = "";
+          }
         }
 
-        selectedRepo = "";
-        data = [...allData];
+        data = selectedRepo
+          ? allData.filter(a => a.repository === selectedRepo)
+          : [...allData];
         view = [...data];
         renderAll();
         console.log(`Loaded ${data.length} items from ${repositories.length} repositories`);
@@ -611,23 +628,23 @@
         : [...allData];
       view = [...data];
       renderAll();
+
+      // Update URL without reloading
+      const url = new URL(window.location);
+      if (selectedRepo) {
+        url.searchParams.set('repo', selectedRepo);
+      } else {
+        url.searchParams.delete('repo');
+      }
+      window.history.replaceState({}, '', url);
     });
 
     // -----------------------------
-    // Filters + Search
+    // Search
     // -----------------------------
-    function applyFilterAndSearch(){
+    function applySearch(){
       const q = (el("q").value || "").toLowerCase().trim();
       const filtered = data.filter(item => {
-        // filter
-        if (activeFilter === "hasStatus" && !item.status_link) return false;
-        if (activeFilter === "missingDesc") {
-          const d = (item.description || "").toLowerCase();
-          if (!d || d.includes("ai description failed")) return true;
-          return false;
-        }
-
-        // search
         if (!q) return true;
         const hay = [
           item.name, item.description, item.execution_method,
@@ -654,21 +671,8 @@
       renderTable(sorted);
     }
 
-    el("q").addEventListener("input", applyFilterAndSearch);
+    el("q").addEventListener("input", applySearch);
     el("q2").addEventListener("input", applyTableSearch);
-
-    function setFilter(f){
-      activeFilter = f;
-      document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
-      if (f === "all") el("pillAll").classList.add("active");
-      if (f === "hasStatus") el("pillHasStatus").classList.add("active");
-      if (f === "missingDesc") el("pillMissingDesc").classList.add("active");
-      applyFilterAndSearch();
-    }
-
-    el("pillAll").addEventListener("click", () => setFilter("all"));
-    el("pillHasStatus").addEventListener("click", () => setFilter("hasStatus"));
-    el("pillMissingDesc").addEventListener("click", () => setFilter("missingDesc"));
 
     // -----------------------------
     // Sorting
