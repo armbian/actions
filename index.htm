@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GitHub Actions Report</title>
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+  <style>
+    :root{
+      --bg:#f8fafc;
+      --panel:#ffffff;
+      --panel2:#f1f5f9;
+      --muted:#64748b;
+      --text:#1e293b;
+      --line:rgba(0,0,0,.10);
+      --accent:#7c5cff;
+      --accent2:#2dd4bf;
+      --shadow: 0 18px 50px rgba(0,0,0,.12);
+      --radius: 18px;
+      --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(1000px 800px at 15% 10%, rgba(124,92,255,.12), transparent 60%),
+        radial-gradient(800px 700px at 75% 15%, rgba(45,212,191,.10), transparent 55%),
+        radial-gradient(1000px 900px at 50% 90%, rgba(0,0,0,.02), transparent 60%),
+        var(--bg);
+      min-height:100vh;
+    }
+    a{color:inherit; text-decoration:none}
+    a:hover{ text-decoration:underline }
+    .wrap{ width:90%; margin:0 auto; padding:28px 18px 40px; }
+    .topbar{
+      display:flex; gap:14px; align-items:flex-end; justify-content:space-between;
+      margin-bottom:18px;
+    }
+    .title{
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .title h1{
+      margin:0;
+      font-size:22px;
+      letter-spacing:.2px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .badge{
+      font-size:12px;
+      color:rgba(30,41,59,.85);
+      background:linear-gradient(90deg, rgba(124,92,255,.15), rgba(45,212,191,.12));
+      border:1px solid var(--line);
+      padding:4px 10px;
+      border-radius:999px;
+    }
+    .subtitle{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.3;
+    }
+
+    .controls{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .input{
+      background:rgba(255,255,255,.8);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      min-width:320px;
+      outline:none;
+    }
+    .input::placeholder{ color:rgba(100,116,139,.5) }
+    .btn{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.7));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      transition: transform .05s ease, border-color .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ border-color: rgba(124,92,255,.5); background:linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,.85)); }
+    .btn:active{ transform: translateY(1px) }
+    .btn.primary{
+      border-color: rgba(124,92,255,.5);
+      background:linear-gradient(180deg, rgba(124,92,255,.20), rgba(124,92,255,.10));
+    }
+
+    .panel{
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .tabs{
+      display:flex; gap:8px;
+      padding:10px;
+      border-bottom:1px solid var(--line);
+      background:rgba(0,0,0,.03);
+    }
+    .tab{
+      padding:10px 12px;
+      border-radius:12px;
+      color:rgba(30,41,59,.70);
+      cursor:pointer;
+      border:1px solid transparent;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+      font-size:13px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .tab .iconify{ font-size:16px; }
+    .tab.active{
+      background:rgba(124,92,255,.12);
+      border-color:rgba(124,92,255,.4);
+      color:var(--text);
+      font-weight: 500;
+    }
+    .content{ padding:16px; }
+
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap:12px;
+      margin-bottom:14px;
+    }
+    @media (max-width: 900px){ .stats{ grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px){ .stats{ grid-template-columns: 1fr; } }
+    .stat{
+      background:rgba(0,0,0,.02);
+      border:1px solid var(--line);
+      border-radius:var(--radius2);
+      padding:12px 12px 10px;
+    }
+    .stat .k{ color:var(--muted); font-size:12px; margin-bottom:6px; }
+    .stat .v{ font-size:18px; letter-spacing:.2px; }
+
+    .filterbar{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin:10px 0 14px;
+    }
+    .search{
+      flex:1;
+      min-width:240px;
+      background:rgba(255,255,255,.8);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      outline:none;
+    }
+    .pill{
+      font-size:12px;
+      color:rgba(30,41,59,.75);
+      border:1px solid var(--line);
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(0,0,0,.03);
+      cursor:pointer;
+    }
+    .pill.active{
+      border-color:rgba(45,212,191,.5);
+      background:rgba(45,212,191,.12);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:12px;
+    }
+    @media (max-width: 1000px){ .grid{ grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 620px){ .grid{ grid-template-columns: 1fr; } }
+
+    .card{
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.02);
+      border-radius:var(--radius2);
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height:160px;
+    }
+    .card h3{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .card .desc{
+      margin:0;
+      color:rgba(30,41,59,.80);
+      font-size:13px;
+      line-height:1.4;
+    }
+    .meta{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .chip{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 8px;
+      background:rgba(255,255,255,.6);
+      color:rgba(30,41,59,.70);
+      font-size:12px;
+    }
+    .links{
+      display:flex;
+      gap:10px;
+      margin-top:auto;
+    }
+    .linkbtn{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.6);
+      font-size:12px;
+      color:rgba(30,41,59,.85);
+    }
+    .linkbtn .iconify{ font-size:14px; }
+    .linkbtn:hover{ border-color: rgba(124,92,255,.5); background:rgba(255,255,255,.9); text-decoration:none; }
+
+    .status-badge-link{ text-decoration:none; display:inline-flex; align-items:center; }
+    .status-badge{ height:20px; border-radius:12px; }
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:var(--radius2);
+      background:rgba(255,255,255,.5);
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+      font-size:13px;
+    }
+    th{
+      text-align:left;
+      color:rgba(30,41,59,.85);
+      background:rgba(0,0,0,.04);
+      position:sticky;
+      top:0;
+      z-index:1;
+      cursor:pointer;
+      user-select:none;
+      white-space:nowrap;
+    }
+    tr:last-child td{ border-bottom:none; }
+    td .small{ color:var(--muted); font-size:12px; margin-top:4px; }
+    .mono{ font-family:var(--mono); font-size:12px; color:rgba(30,41,59,.70) }
+
+    .raw{
+      font-family:var(--mono);
+      font-size:12px;
+      line-height:1.45;
+      background:rgba(0,0,0,.04);
+      border:1px solid var(--line);
+      border-radius:var(--radius2);
+      padding:12px;
+      overflow:auto;
+      max-height:70vh;
+      white-space:pre;
+    }
+
+    .toast{
+      margin-top:10px;
+      color:rgba(30,41,59,.85);
+      font-size:13px;
+      background:rgba(0,0,0,.04);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      display:none;
+    }
+    .toast.show{ display:block; }
+    .error{ border-color: rgba(255,90,90,.45); }
+
+    .repo-selector{
+      margin-bottom:14px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .repo-selector select{
+      flex:1;
+      background:rgba(255,255,255,.8);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      outline:none;
+      font-size:14px;
+    }
+
+    .complexity{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:4px;
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    .complexity .bar{
+      width:60px;
+      height:6px;
+      background:rgba(0,0,0,.1);
+      border-radius:3px;
+      overflow:hidden;
+    }
+    .complexity .fill{
+      height:100%;
+      background:linear-gradient(90deg, rgba(45,212,191,.6), rgba(124,92,255,.6));
+      transition: width 0.2s ease;
+    }
+
+    .logo{
+      height:40px;
+      width:auto;
+      vertical-align:middle;
+      margin-right:12px;
+    }
+    .title-row{
+      display:flex;
+      align-items:center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        <div class="title-row">
+          <img src="https://raw.githubusercontent.com/armbian/.github/master/profile/logosmall.png" alt="Armbian" class="logo" />
+          <h1>
+            GitHub Actions Report Viewer
+            <span class="badge" id="badgeCount">0 items</span>
+          </h1>
+        </div>
+        <p class="subtitle">
+          Browse GitHub Actions workflows with tabs, search, and quick links.
+          Default source: <span class="mono">data</span>
+        </p>
+      </div>
+
+      <div class="controls">
+        <input class="input" id="sourceUrl" value="data" placeholder="URL or path to JSON directory (e.g. data)" />
+        <button class="btn primary" id="btnLoad">Load All</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="tabs">
+        <div class="tab active" data-tab="overview"><span class="iconify" data-icon="lucide:layout-dashboard"></span> Overview</div>
+        <div class="tab" data-tab="table"><span class="iconify" data-icon="lucide:table"></span> Table</div>
+        <div class="tab" data-tab="raw"><span class="iconify" data-icon="lucide:code-json"></span> Raw JSON</div>
+      </div>
+
+      <div class="content">
+        <div id="toast" class="toast"></div>
+
+        <!-- REPOSITORY SELECTOR -->
+        <div class="repo-selector" id="repoSelector" style="display:none;">
+          <label for="repoSelect" style="font-size:13px; color:var(--muted);">Repository:</label>
+          <select id="repoSelect">
+            <option value="">All Repositories</option>
+          </select>
+          <span class="chip" id="repoCount">0 repos</span>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div id="tab-overview">
+          <div class="stats" id="stats"></div>
+
+          <div class="filterbar">
+            <input id="q" class="search" placeholder="Search by name / description / execution method…" />
+            <button class="pill active" id="pillAll" data-filter="all">All</button>
+            <button class="pill" id="pillHasStatus" data-filter="hasStatus">Has status link</button>
+            <button class="pill" id="pillMissingDesc" data-filter="missingDesc">Missing/failed description</button>
+          </div>
+
+          <div class="grid" id="cards"></div>
+        </div>
+
+        <!-- TABLE -->
+        <div id="tab-table" style="display:none;">
+          <div class="filterbar" style="margin-top:0;">
+            <input id="q2" class="search" placeholder="Search table…" />
+            <span class="chip">Tip: click table headers to sort</span>
+          </div>
+
+          <div style="overflow:auto; max-height:72vh;">
+            <table id="tbl">
+              <thead>
+                <tr>
+                  <th data-key="name">Name</th>
+                  <th data-key="execution_method">Execution</th>
+                  <th data-key="description">Description</th>
+                  <th data-key="filelength">Size</th>
+                  <th data-key="executed">Last Run</th>
+                  <th data-key="status_link">Status</th>
+                  <th data-key="script_link">Script</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- RAW -->
+        <div id="tab-raw" style="display:none;">
+          <div class="raw" id="rawBox">[]</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -----------------------------
+    // State
+    // -----------------------------
+    let allData = []; // All repository data
+    let repositories = []; // List of available repositories
+    let selectedRepo = ""; // Currently selected repository
+    let data = []; // Currently displayed data (filtered by repo)
+    let view = [];
+    let activeFilter = "all";
+    let sortKey = "name";
+    let sortDir = 1; // 1 asc, -1 desc
+
+    const el = (id) => document.getElementById(id);
+
+    const toast = (msg, type="ok") => {
+      const t = el("toast");
+      t.textContent = msg;
+      t.className = "toast show" + (type === "error" ? " error" : "");
+      setTimeout(() => t.classList.remove("show"), 5200);
+    };
+
+    // -----------------------------
+    // Tabs
+    // -----------------------------
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        const name = tab.dataset.tab;
+        ["overview","table","raw"].forEach(k => {
+          el("tab-"+k).style.display = (k === name) ? "" : "none";
+        });
+      });
+    });
+
+    // -----------------------------
+    // Loading JSON
+    // -----------------------------
+    async function loadJsonFrom(url){
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+      const json = await res.json();
+      return json;
+    }
+
+    async function loadMultipleReports(baseUrl){
+      // Determine the actions directory based on the base URL
+      // If baseUrl already ends with '/actions', use it directly
+      // Otherwise, append '/actions' to the baseUrl
+      const actionsDir = baseUrl.endsWith('/actions') ? baseUrl : `${baseUrl.replace(/\/$/, '')}/actions`;
+
+      console.log(`[loadMultipleReports] Looking for reports in: ${actionsDir}`);
+
+      let repoList = [];
+
+      // Try to discover JSON files by HEAD requests
+      const tryRepos = ['armbian.github.io', 'build', 'documentation', 'userland'];
+      for (const repo of tryRepos) {
+        try {
+          const url = `${actionsDir}/actions-report-${repo}.json`;
+          const res = await fetch(url, { method: 'HEAD', cache: "no-store" });
+          if (res.ok) {
+            console.log(`[loadMultipleReports] Found: ${repo}`);
+            repoList.push(repo);
+          } else {
+            console.log(`[loadMultipleReports] Not found (HTTP ${res.status}): ${repo}`);
+          }
+        } catch (e) {
+          console.log(`[loadMultipleReports] Error checking ${repo}:`, e.message);
+        }
+      }
+
+      console.log(`[loadMultipleReports] Discovered ${repoList.length} repositories:`, repoList);
+
+      // Load all repository reports
+      const reports = [];
+      for (const repo of repoList) {
+        try {
+          const url = `${actionsDir}/actions-report-${repo}.json`;
+          const json = await loadJsonFrom(url);
+          reports.push({ repo, data: json });
+          console.log(`[loadMultipleReports] Loaded: ${repo} with ${json.actions?.length || 0} actions`);
+        } catch (e) {
+          console.warn(`[loadMultipleReports] Failed to load ${repo}:`, e.message);
+        }
+      }
+
+      return reports;
+    }
+
+    function normalizeActions(json, repoOverride = null, orgOverride = null){
+      // Handle new hierarchical structure: { organization, repository, actions }
+      // OR old flat format: just an array of actions
+      const actions = json.actions || json;
+      const repository = repoOverride || json.repository || "unknown";
+      const organization = orgOverride || json.organization || "unknown";
+
+      return actions.map((x, idx) => ({
+        name: String(x.name ?? `item-${idx}`),
+        filename: String(x.filename ?? x.name ?? `item-${idx}`),
+        description: String(x.description ?? ""),
+        execution_method: String(x.execution_method ?? ""),
+        status_link: x.status_link ?? null,
+        script_link: x.script_link ?? null,
+        filelength: Number(x.filelength ?? 0),
+        executed: x.executed ?? null,
+        edited: x.edited ?? null,
+        repository: repository,
+        organization: organization,
+      }));
+    }
+
+    function getComplexityLevel(size){
+      if (size < 1000) return { level: 'Simple', pct: 20, color: '#2dd4bf' };
+      if (size < 3000) return { level: 'Medium', pct: 50, color: '#7c5cff' };
+      if (size < 8000) return { level: 'Complex', pct: 75, color: '#f59e0b' };
+      return { level: 'Very Complex', pct: 100, color: '#ef4444' };
+    }
+
+    function formatBytes(bytes){
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function getDaysSinceLast(executed){
+      if (!executed) return null;
+      const executedDate = new Date(executed);
+      const now = new Date();
+      const diffMs = now - executedDate;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 1) return { text: 'Today', color: '#2dd4bf' };
+      if (diffDays === 1) return { text: 'Yesterday', color: '#7c5cff' };
+      if (diffDays < 7) return { text: `${diffDays} days ago`, color: '#7c5cff' };
+      if (diffDays < 30) return { text: `${diffDays} days ago`, color: '#f59e0b' };
+      return { text: `${diffDays} days ago`, color: '#ef4444' };
+    }
+
+    async function reload(){
+      const url = el("sourceUrl").value.trim();
+      try{
+        toast("Loading JSON(s)…");
+
+        // Try loading as directory first
+        const reports = await loadMultipleReports(url);
+
+        if (reports.length > 0) {
+          // Multi-repository mode - pass repo/org from report metadata
+          allData = reports.flatMap(r => {
+            const repoName = r.repo; // Extract from filename
+            const orgName = r.data.organization || "armbian";
+            return normalizeActions(r.data, repoName, orgName);
+          });
+
+          repositories = [...new Set(allData.map(a => a.repository))];
+
+          // Populate repository selector
+          el("repoSelect").innerHTML = '<option value="">All Repositories</option>' +
+            repositories.map(r => `<option value="${r}">${r}</option>`).join('');
+          el("repoCount").textContent = `${repositories.length} repos`;
+          el("repoSelector").style.display = "flex";
+        } else {
+          // Single file mode - try to extract repo from URL
+          const raw = await loadJsonFrom(url);
+
+          // Try to extract repo name from URL path
+          let repoOverride = null;
+          const urlMatch = url.match(/actions-report-([^/]+)\.json/);
+          if (urlMatch) {
+            repoOverride = urlMatch[1];
+          }
+
+          allData = normalizeActions(raw, repoOverride);
+          repositories = [...new Set(allData.map(a => a.repository))];
+
+          if (repositories.length > 0 && repositories[0] !== "unknown") {
+            el("repoSelect").innerHTML = '<option value="">All Repositories</option>' +
+              repositories.map(r => `<option value="${r}">${r}</option>`).join('');
+            el("repoCount").textContent = `${repositories.length} repos`;
+            el("repoSelector").style.display = "flex";
+          } else {
+            el("repoSelector").style.display = "none";
+          }
+        }
+
+        selectedRepo = "";
+        data = [...allData];
+        view = [...data];
+        renderAll();
+        toast(`Loaded ${data.length} items from ${repositories.length} repositories`);
+      }catch(err){
+        allData = [];
+        data = [];
+        view = [];
+        repositories = [];
+        renderAll();
+        toast(`Failed to load: ${err.message}`, "error");
+      }
+    }
+
+    el("btnLoad").addEventListener("click", reload);
+
+    // Repository selector change
+    el("repoSelect").addEventListener("change", (e) => {
+      selectedRepo = e.target.value;
+      data = selectedRepo
+        ? allData.filter(a => a.repository === selectedRepo)
+        : [...allData];
+      view = [...data];
+      renderAll();
+    });
+
+    // -----------------------------
+    // Filters + Search
+    // -----------------------------
+    function applyFilterAndSearch(){
+      const q = (el("q").value || "").toLowerCase().trim();
+      const filtered = data.filter(item => {
+        // filter
+        if (activeFilter === "hasStatus" && !item.status_link) return false;
+        if (activeFilter === "missingDesc") {
+          const d = (item.description || "").toLowerCase();
+          if (!d || d.includes("ai description failed")) return true;
+          return false;
+        }
+
+        // search
+        if (!q) return true;
+        const hay = [
+          item.name, item.description, item.execution_method,
+          item.status_link || "", item.script_link || ""
+        ].join("\n").toLowerCase();
+        return hay.includes(q);
+      });
+
+      view = filtered;
+      renderOverview();
+    }
+
+    function applyTableSearch(){
+      const q = (el("q2").value || "").toLowerCase().trim();
+      const filtered = data.filter(item => {
+        if (!q) return true;
+        const hay = [
+          item.name, item.description, item.execution_method,
+          item.status_link || "", item.script_link || ""
+        ].join("\n").toLowerCase();
+        return hay.includes(q);
+      });
+      const sorted = sortItems(filtered, sortKey, sortDir);
+      renderTable(sorted);
+    }
+
+    el("q").addEventListener("input", applyFilterAndSearch);
+    el("q2").addEventListener("input", applyTableSearch);
+
+    function setFilter(f){
+      activeFilter = f;
+      document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+      if (f === "all") el("pillAll").classList.add("active");
+      if (f === "hasStatus") el("pillHasStatus").classList.add("active");
+      if (f === "missingDesc") el("pillMissingDesc").classList.add("active");
+      applyFilterAndSearch();
+    }
+
+    el("pillAll").addEventListener("click", () => setFilter("all"));
+    el("pillHasStatus").addEventListener("click", () => setFilter("hasStatus"));
+    el("pillMissingDesc").addEventListener("click", () => setFilter("missingDesc"));
+
+    // -----------------------------
+    // Sorting
+    // -----------------------------
+    function sortItems(items, key, dir){
+      const copy = [...items];
+      copy.sort((a,b) => {
+        const av = (a[key] ?? "").toString().toLowerCase();
+        const bv = (b[key] ?? "").toString().toLowerCase();
+        if (av < bv) return -1 * dir;
+        if (av > bv) return  1 * dir;
+        return 0;
+      });
+      return copy;
+    }
+
+    document.querySelectorAll("th[data-key]").forEach(th => {
+      th.addEventListener("click", () => {
+        const k = th.dataset.key;
+        if (sortKey === k) sortDir *= -1;
+        else { sortKey = k; sortDir = 1; }
+        applyTableSearch();
+      });
+    });
+
+    // -----------------------------
+    // Rendering
+    // -----------------------------
+    function renderStats(){
+      const total = data.length;
+      const withStatus = data.filter(x => !!x.status_link).length;
+      const failed = data.filter(x => (x.description || "").toLowerCase().includes("ai description failed")).length;
+      const noDesc = data.filter(x => !(x.description || "").trim()).length;
+
+      const org = el("badgeCount").dataset.org || "—";
+      const repo = el("badgeCount").dataset.repo || "—";
+
+      el("badgeCount").textContent = `${total} items`;
+
+      el("stats").innerHTML = `
+        <div class="stat"><div class="k">Organization</div><div class="v">${escapeHtml(org)}</div></div>
+        <div class="stat"><div class="k">Repository</div><div class="v">${escapeHtml(repo)}</div></div>
+        <div class="stat"><div class="k">Total</div><div class="v">${total}</div></div>
+        <div class="stat"><div class="k">With status link</div><div class="v">${withStatus}</div></div>
+      `;
+    }
+
+    function getTriggerIcon(method){
+      const m = method.toLowerCase();
+      if (m.includes('push') || m.includes('pull')) return 'lucide:git-pull-request';
+      if (m.includes('schedule') || m.includes('cron')) return 'lucide:clock';
+      if (m.includes('workflow_dispatch') || m.includes('manual')) return 'lucide:play-circle';
+      if (m.includes('repository_dispatch')) return 'lucide:webhook';
+      return 'lucide:zap';
+    }
+
+    function renderOverview(){
+      renderStats();
+
+      const items = view;
+      const cards = items.map(item => {
+        // Use item's own organization and repository for badge URL
+        const org = item.organization || "armbian";
+        const repo = item.repository || "armbian.github.io";
+        const repoPath = `${org}/${repo}`;
+        const workflowFilename = item.filename;
+        const badgeUrl = `https://img.shields.io/github/actions/workflow/status/${repoPath}/${workflowFilename}?label=&style=for-the-badge&branch=main&logoColor=white`;
+
+        const status = item.status_link
+          ? `<a href="${escapeAttr(item.status_link)}" target="_blank" rel="noopener" class="status-badge-link"><img src="${escapeAttr(badgeUrl)}" alt="Workflow Status" class="status-badge" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';" /><span style="display:none;"><span class="iconify" data-icon="lucide:external-link"></span> View Status</span></a>`
+          : `<span class="linkbtn" style="opacity:.5; cursor:default;"><span class="iconify" data-icon="lucide:hourglass"></span> No status</span>`;
+
+        const script = item.script_link
+          ? `<a class="linkbtn" href="${escapeAttr(item.script_link)}" target="_blank" rel="noopener"><span class="iconify" data-icon="lucide:file-code"></span> Script</a>`
+          : `<span class="linkbtn" style="opacity:.5; cursor:default;"><span class="iconify" data-icon="lucide:file-x"></span> No script</span>`;
+
+        const exec = item.execution_method ? item.execution_method : "—";
+        const execIcon = item.execution_method ? `<span class="iconify" data-icon="${escapeAttr(getTriggerIcon(item.execution_method))}" title="${escapeHtml(exec)}"></span>` : '';
+        const desc = item.description ? item.description : "—";
+
+        // Complexity display
+        const complexity = item.filelength ? getComplexityLevel(item.filelength) : null;
+        const complexityHtml = complexity ? `
+          <div class="complexity">
+            <span>${formatBytes(item.filelength)} • ${complexity.level}</span>
+            <div class="bar"><div class="fill" style="width:${complexity.pct}%;background:${complexity.color}"></div></div>
+          </div>
+        ` : '';
+
+        // Last execution info
+        let lastExecHtml = '';
+        if (item.executed) {
+          const daysInfo = getDaysSinceLast(item.executed);
+          lastExecHtml = `
+            <div class="complexity" style="margin-top:2px;">
+              <span class="iconify" data-icon="lucide:clock" style="font-size:11px;margin-right:2px;"></span>
+              <span style="color:${daysInfo.color}">${daysInfo.text}</span>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="card">
+            <h3>
+              <span>${escapeHtml(item.name)}</span>
+              ${execIcon ? `<span class="chip" title="${escapeHtml(exec)}">${execIcon}</span>` : ''}
+            </h3>
+            <p class="desc">${escapeHtml(desc)}</p>
+            ${complexityHtml}
+            ${lastExecHtml}
+            <div class="links">${status}${script}</div>
+          </div>
+        `;
+      }).join("");
+
+      el("cards").innerHTML = cards || `<div class="chip">No results. Try clearing filters/search.</div>`;
+      el("rawBox").textContent = JSON.stringify(data, null, 2);
+    }
+
+    function renderTable(items){
+      const rows = items.map(item => {
+        // Use item's own organization and repository for badge URL
+        const org = item.organization || "armbian";
+        const repo = item.repository || "armbian.github.io";
+        const repoPath = `${org}/${repo}`;
+        const workflowFilename = item.filename;
+        const badgeUrl = `https://img.shields.io/github/actions/workflow/status/${repoPath}/${workflowFilename}?label=&style=for-the-badge&branch=main&logoColor=white`;
+
+        const status = item.status_link
+          ? `<a href="${escapeAttr(item.status_link)}" target="_blank" rel="noopener" class="status-badge-link"><img src="${escapeAttr(badgeUrl)}" alt="Workflow Status" class="status-badge" style="height:20px;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';" /><span style="display:none;"><span class="iconify" data-icon="lucide:external-link"></span></span></a>`
+          : `<span style="opacity:.6;">—</span>`;
+        const script = item.script_link
+          ? `<a href="${escapeAttr(item.script_link)}" target="_blank" rel="noopener"><span class="iconify" data-icon="lucide:external-link" style="vertical-align:middle;font-size:14px;"></span></a>`
+          : `<span style="opacity:.6;">—</span>`;
+
+        const execIcon = item.execution_method ? `<span class="iconify" data-icon="${escapeAttr(getTriggerIcon(item.execution_method))}" style="vertical-align:middle;font-size:13px;margin-right:4px;"></span>` : '';
+
+        // File length/size display
+        let sizeHtml = '<span style="opacity:.6;">—</span>';
+        if (item.filelength) {
+          const complexity = getComplexityLevel(item.filelength);
+          sizeHtml = `
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:12px;">${formatBytes(item.filelength)}</span>
+              <div style="width:40px;height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden;">
+                <div style="width:${complexity.pct}%;height:100%;background:${complexity.color};"></div>
+              </div>
+            </div>
+          `;
+        }
+
+        // Last execution display
+        let lastExecHtml = '<span style="opacity:.6;">—</span>';
+        if (item.executed) {
+          const daysInfo = getDaysSinceLast(item.executed);
+          lastExecHtml = `
+            <div style="display:flex;align-items:center;gap:4px;">
+              <span class="iconify" data-icon="lucide:clock" style="font-size:11px;"></span>
+              <span style="font-size:12px;color:${daysInfo.color};">${daysInfo.text}</span>
+            </div>
+          `;
+        }
+
+        return `
+          <tr>
+            <td><div>${escapeHtml(item.name)}</div></td>
+            <td><div>${execIcon}${escapeHtml(item.execution_method || "—")}</div></td>
+            <td>
+              <div>${escapeHtml(shorten(item.description || "—", 220))}</div>
+              <div class="small">${escapeHtml(item.description && item.description.length > 220 ? "… truncated" : "")}</div>
+            </td>
+            <td>${sizeHtml}</td>
+            <td>${lastExecHtml}</td>
+            <td>${status}</td>
+            <td>${script}</td>
+          </tr>
+        `;
+      }).join("");
+
+      el("tbody").innerHTML = rows || `<tr><td colspan="7" style="opacity:.7;">No rows.</td></tr>`;
+      el("rawBox").textContent = JSON.stringify(data, null, 2);
+    }
+
+    function renderAll(){
+      renderOverview();
+      const sorted = sortItems(data, sortKey, sortDir);
+      renderTable(sorted);
+      el("rawBox").textContent = JSON.stringify(data, null, 2);
+    }
+
+    // -----------------------------
+    // Helpers (safe output)
+    // -----------------------------
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+    function escapeAttr(s){ return escapeHtml(s); }
+    function shorten(s, n){
+      s = String(s);
+      return s.length > n ? s.slice(0, n-1) + "…" : s;
+    }
+
+    // -----------------------------
+    // Initial load (best effort)
+    // -----------------------------
+    reload();
+  </script>
+
+  <!--
+    Local-file note:
+    If you open this HTML with file://, many browsers block fetch("actions-report.json").
+    Use a tiny local server:
+      python3 -m http.server 8000
+    Then open:
+      http://localhost:8000/report.html
+  -->
+</body>
+</html>
