@@ -243,21 +243,51 @@
     .status-badge-link{ text-decoration:none; display:inline-flex; align-items:center; }
     .status-badge{ height:20px; border-radius:12px; }
 
+    .script-corner{
+      position:absolute;
+      top:12px;
+      right:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:28px;
+      height:28px;
+      border-radius:8px;
+      color:rgba(124,92,255,.7);
+      transition:all 0.2s;
+    }
+    .script-corner:hover{
+      background:rgba(124,92,255,.1);
+      color:#7c5cff;
+    }
+    .script-corner .iconify{
+      font-size:16px;
+    }
+
     .category-badge{
-      display:inline-block;
-      padding:3px 10px;
-      border-radius:12px;
-      background:linear-gradient(135deg, #7c5cff 0%, #6366f1 100%);
-      color:#fff;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:2px 8px;
+      border-radius:6px;
+      background:rgba(124,92,255,.1);
+      color:#7c5cff;
       font-size:11px;
-      font-weight:600;
-      letter-spacing:0.3px;
-      text-transform:uppercase;
+      font-weight:500;
       cursor:pointer;
-      transition:opacity 0.2s;
+      transition:all 0.2s;
+      border:1px solid rgba(124,92,255,.2);
     }
     .category-badge:hover{
-      opacity:0.8;
+      background:rgba(124,92,255,.15);
+      border-color:rgba(124,92,255,.3);
+    }
+    .category-badge::before{
+      content:'';
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:#7c5cff;
     }
 
     table{
@@ -828,11 +858,17 @@
 
         // Category badge
         const categoryBadge = item.category && item.category !== "generic"
-          ? `<span class="category-badge" onclick="filterByCategory('${escapeHtml(item.category)}')" style="cursor:pointer;" title="Click to filter by ${escapeHtml(item.category)}">${escapeHtml(item.category)}</span>`
+          ? `<span class="category-badge" onclick="filterByCategory('${escapeHtml(item.category)}')" title="Click to filter by ${escapeHtml(item.category)}">${escapeHtml(item.category)}</span>`
+          : "";
+
+        // Script link in top-right
+        const scriptCorner = item.script_link
+          ? `<a href="${escapeAttr(item.script_link)}" target="_blank" rel="noopener" class="script-corner"><span class="iconify" data-icon="lucide:external-link"></span></a>`
           : "";
 
         return `
-          <div class="card">
+          <div class="card" style="position:relative;">
+            ${scriptCorner}
             <h3>
               <span>${escapeHtml(item.name)}</span>
               ${execIcon ? `<span class="chip" title="${escapeHtml(exec)}">${execIcon}</span>` : ''}
@@ -840,7 +876,7 @@
             <p class="desc">${escapeHtml(desc)}</p>
             ${complexityHtml}
             ${lastExecHtml}
-            <div class="links">${categoryBadge}${status}${script}</div>
+            <div class="links">${categoryBadge}${status}</div>
           </div>
         `;
       }).join("");
