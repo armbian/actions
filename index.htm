@@ -40,6 +40,33 @@
       display:flex; gap:14px; align-items:flex-end; justify-content:space-between;
       margin-bottom:18px;
     }
+    .header-links{
+      display:flex; gap:10px; align-items:center;
+    }
+    .header-link{
+      display:inline-flex; gap:6px; align-items:center;
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.6);
+      font-size:13px;
+      color:rgba(30,41,59,.85);
+      transition: all 0.2s;
+    }
+    .header-link:hover{
+      border-color: rgba(124,92,255,.5);
+      background:rgba(255,255,255,.9);
+      text-decoration:none;
+    }
+    .header-link .iconify{ font-size:16px; }
+    .footer{
+      text-align:center;
+      padding:20px 0 10px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .footer a{ color:inherit; }
+    .footer a:hover{ color:var(--accent); text-decoration:none; }
     .title{
       display:flex; flex-direction:column; gap:6px;
     }
@@ -418,6 +445,24 @@
           <h1>armbian automation mandess</h1>
         </div>
       </div>
+      <div class="header-links">
+        <a href="https://www.armbian.com" target="_blank" rel="noopener" class="header-link">
+          <span class="iconify" data-icon="lucide:globe"></span>
+          Website
+        </a>
+        <a href="https://github.com/sponsors/armbian" target="_blank" rel="noopener" class="header-link">
+          <span class="iconify" data-icon="lucide:heart"></span>
+          Sponsor
+        </a>
+        <a href="https://github.com/armbian" target="_blank" rel="noopener" class="header-link">
+          <span class="iconify" data-icon="lucide:github"></span>
+          GitHub
+        </a>
+        <a href="https://www.armbian.com/contact" target="_blank" rel="noopener" class="header-link">
+          <span class="iconify" data-icon="lucide:mail"></span>
+          Contact
+        </a>
+      </div>
     </div>
 
     <div class="panel">
@@ -485,6 +530,10 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="footer">
+    © <script>document.write(new Date().getFullYear())</script> <a href="https://www.armbian.com" target="_blank" rel="noopener">Armbian d.o.o.</a> All rights reserved.
   </div>
 
   <script>
