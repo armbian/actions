@@ -481,7 +481,6 @@
           <select id="repoSelect">
             <option value="">All Repositories</option>
           </select>
-          <span class="chip" id="repoCount">0 repos</span>
         </div>
 
         <!-- OVERVIEW -->
@@ -743,8 +742,7 @@
 
           // Populate repository selector
           el("repoSelect").innerHTML = '<option value="">All Repositories</option>' +
-            repositories.map(r => `<option value="${r}">${r}</option>`).join('');
-          el("repoCount").textContent = `${repositories.length} repos`;
+            repositories.map(r => `<option value="${r}">${r}</option>`).join('');          
           el("repoSelector").style.display = "flex";
 
           // Set selected repository from URL parameter if valid
@@ -900,7 +898,6 @@
 
       el("stats").innerHTML = `
         <div class="stat"><div class="k">Total Workflows</div><div class="v">${total}</div></div>
-        <div class="stat"><div class="k">With Status Link</div><div class="v">${withStatus}</div></div>
         <div class="stat"><div class="k">Repositories</div><div class="v">${repositories.length}</div></div>
         <div class="stat"><div class="k">Selected</div><div class="v">${selectedRepo || "All"}</div></div>
         ${categoryHtml}
