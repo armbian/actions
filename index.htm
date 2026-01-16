@@ -514,6 +514,7 @@
                   <th data-key="retry_count">Retries</th>
                   <th data-key="last_run_duration_seconds">Duration</th>
                   <th data-key="total_run_time_seconds">Total Time</th>
+                  <th data-key="cron_schedule">Schedule</th>
                   <th data-key="executed">Last Run</th>
                   <th data-key="status_link">Link</th>
                   <th data-key="script_link">Script</th>
@@ -658,6 +659,7 @@
         category: String(x.category ?? "generic"),
         description: String(x.description ?? ""),
         execution_method: String(x.execution_method ?? ""),
+        cron_schedule: String(x.cron_schedule ?? ""),
         status_link: x.status_link ?? null,
         script_link: x.script_link ?? null,
         filelength: Number(x.filelength ?? 0),
@@ -1006,6 +1008,16 @@
           }
         }
 
+        // Cron schedule
+        if (item.cron_schedule) {
+          metricsHtml += `
+            <div class="complexity" style="margin-top:2px;">
+              <span class="iconify" data-icon="lucide:calendar-clock" style="font-size:11px;margin-right:2px;"></span>
+              <span style="font-size:12px;">${escapeHtml(item.cron_schedule)}</span>
+            </div>
+          `;
+        }
+
         // Category badge
         const categoryBadge = item.category && item.category !== "generic"
           ? `<span class="category-badge" onclick="filterByCategory('${escapeHtml(item.category)}')" title="Click to filter by ${escapeHtml(item.category)}">${escapeHtml(item.category)}</span>`
@@ -1123,6 +1135,17 @@
           `;
         }
 
+        // Cron schedule display
+        let scheduleHtml = '<span style="opacity:.6;">—</span>';
+        if (item.cron_schedule) {
+          scheduleHtml = `
+            <div style="display:flex;align-items:center;gap:4px;">
+              <span class="iconify" data-icon="lucide:calendar-clock" style="font-size:11px;"></span>
+              <span style="font-size:12px;">${escapeHtml(item.cron_schedule)}</span>
+            </div>
+          `;
+        }
+
         return `
           <tr>
             <td><div>${escapeHtml(item.name)}</div></td>
@@ -1135,6 +1158,7 @@
             <td>${retryHtml}</td>
             <td>${durationHtml}</td>
             <td>${totalTimeHtml}</td>
+            <td>${scheduleHtml}</td>
             <td>${lastExecHtml}</td>
             <td>${status}</td>
             <td>${script}</td>
@@ -1142,7 +1166,7 @@
         `;
       }).join("");
 
-      el("tbody").innerHTML = rows || `<tr><td colspan="11" style="opacity:.7;">No rows.</td></tr>`;
+      el("tbody").innerHTML = rows || `<tr><td colspan="12" style="opacity:.7;">No rows.</td></tr>`;
       el("rawBox").textContent = JSON.stringify(data, null, 2);
     }
 
