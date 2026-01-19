@@ -514,6 +514,7 @@
                   <th data-key="last_run_duration_seconds">Duration</th>
                   <th data-key="total_run_time_seconds">Total Time</th>
                   <th data-key="cron_schedule">Schedule</th>
+                  <th data-key="edited">Edited</th>
                   <th data-key="executed">Last Run</th>
                   <th data-key="status_link">Link</th>
                   <th data-key="script_link">Script</th>
@@ -949,6 +950,39 @@
         // Build metrics section
         let metricsHtml = '';
 
+        // Last edited info
+        if (item.edited) {
+          const editedDate = new Date(item.edited);
+          const now = new Date();
+          const diffMs = now - editedDate;
+          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+          let editedText, editedColor;
+          if (diffDays < 1) {
+            editedText = 'Edited today';
+            editedColor = '#2dd4bf';
+          } else if (diffDays === 1) {
+            editedText = 'Edited yesterday';
+            editedColor = '#7c5cff';
+          } else if (diffDays < 7) {
+            editedText = `Edited ${diffDays} days ago`;
+            editedColor = '#7c5cff';
+          } else if (diffDays < 30) {
+            editedText = `Edited ${diffDays} days ago`;
+            editedColor = '#f59e0b';
+          } else {
+            editedText = `Edited ${diffDays} days ago`;
+            editedColor = '#ef4444';
+          }
+
+          metricsHtml += `
+            <div class="complexity" style="margin-top:2px;">
+              <span class="iconify" data-icon="lucide:edit-3" style="font-size:11px;margin-right:2px;"></span>
+              <span style="color:${editedColor};">${editedText}</span>
+            </div>
+          `;
+        }
+
         // Last execution info
         if (item.executed) {
           const daysInfo = getDaysSinceLast(item.executed);
@@ -1143,6 +1177,40 @@
           `;
         }
 
+        // Edited display
+        let editedHtml = '<span style="opacity:.6;">—</span>';
+        if (item.edited) {
+          const editedDate = new Date(item.edited);
+          const now = new Date();
+          const diffMs = now - editedDate;
+          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+          let editedText, editedColor;
+          if (diffDays < 1) {
+            editedText = 'Today';
+            editedColor = '#2dd4bf';
+          } else if (diffDays === 1) {
+            editedText = 'Yesterday';
+            editedColor = '#7c5cff';
+          } else if (diffDays < 7) {
+            editedText = `${diffDays}d ago`;
+            editedColor = '#7c5cff';
+          } else if (diffDays < 30) {
+            editedText = `${diffDays}d ago`;
+            editedColor = '#f59e0b';
+          } else {
+            editedText = `${diffDays}d ago`;
+            editedColor = '#ef4444';
+          }
+
+          editedHtml = `
+            <div style="display:flex;align-items:center;gap:4px;">
+              <span class="iconify" data-icon="lucide:edit-3" style="font-size:11px;"></span>
+              <span style="font-size:12px;color:${editedColor};">${editedText}</span>
+            </div>
+          `;
+        }
+
         return `
           <tr>
             <td><div>${escapeHtml(item.name)}</div></td>
@@ -1156,6 +1224,7 @@
             <td>${durationHtml}</td>
             <td>${totalTimeHtml}</td>
             <td>${scheduleHtml}</td>
+            <td>${editedHtml}</td>
             <td>${lastExecHtml}</td>
             <td>${status}</td>
             <td>${script}</td>
@@ -1163,7 +1232,7 @@
         `;
       }).join("");
 
-      el("tbody").innerHTML = rows || `<tr><td colspan="12" style="opacity:.7;">No rows.</td></tr>`;
+      el("tbody").innerHTML = rows || `<tr><td colspan="13" style="opacity:.7;">No rows.</td></tr>`;
       el("rawBox").textContent = JSON.stringify(data, null, 2);
     }
 
