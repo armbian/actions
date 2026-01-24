@@ -5,8 +5,6 @@ Simple Hetzner Server Creator
 Creates N Hetzner Cloud servers with specified configuration.
 """
 
-print("[DEBUG] Script started, importing modules...")
-
 from __future__ import annotations
 
 import argparse
@@ -14,6 +12,8 @@ import json
 import os
 import sys
 import time
+
+print("[DEBUG] Script started, importing modules...")
 
 try:
     from hcloud import Client
