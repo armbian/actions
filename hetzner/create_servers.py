@@ -36,6 +36,7 @@ package_update: true
 package_upgrade: true
 packages:
   - curl
+  - tree
   - git
   - ca-certificates
 
