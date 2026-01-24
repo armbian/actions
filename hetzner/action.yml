@@ -15,8 +15,8 @@ inputs:
     description: "OS image name"
     default: "ubuntu-24.04"
   ssh-key:
-    required: true
-    description: "SSH key name in Hetzner Cloud"
+    required: false
+    description: "SSH key name in Hetzner Cloud (required for create, optional for delete)"
   index:
     required: false
     description: "Server index (for matrix builds)"
@@ -67,8 +67,12 @@ runs:
           ${{ inputs.action }} \
           --server-type ${{ inputs.server-type }} \
           --image ${{ inputs.image }} \
-          --ssh-key ${{ inputs.ssh-key }} \
           --index ${{ inputs.index }}"
+
+        # Only add ssh-key if provided
+        if [[ -n "${{ inputs.ssh-key }}" ]]; then
+          CMD="${CMD} --ssh-key ${{ inputs.ssh-key }}"
+        fi
 
         if [[ "${{ inputs.action }}" == "create" ]]; then
           CMD="${CMD} --count 1 --runner-count ${{ inputs.runner-count }}"

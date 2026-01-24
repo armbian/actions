@@ -267,6 +267,8 @@ def main():
     parser.add_argument(
         "--ssh-key",
         default="UPLOAD",
+        nargs="?",
+        const="UPLOAD",
         help="SSH key name in Hetzner (default: UPLOAD)",
     )
     parser.add_argument(
