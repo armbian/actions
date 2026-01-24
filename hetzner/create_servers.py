@@ -105,14 +105,23 @@ def create_server(
     Returns:
         Dict with server info
     """
+    print(f"[DEBUG] Starting server creation for: {name}")
+    print(f"[DEBUG] Server type: {server_type}, Image: {image}")
+    print(f"[DEBUG] SSH key name: {ssh_key_name}")
+    print(f"[DEBUG] Delete existing: {delete_existing}")
+    print(f"[DEBUG] Runner count: {runner_count}")
+
     # Check if server exists
     existing = client.servers.get_by_name(name)
     if existing:
+        print(f"[DEBUG] Server {name} already exists (ID: {existing.id}, Status: {existing.status})")
         if delete_existing:
             print(f"Deleting existing server: {name}")
             client.servers.delete(existing)
             time.sleep(2)  # Wait for deletion
+            print(f"[DEBUG] Existing server deleted")
         else:
+            print(f"[DEBUG] Returning existing server info")
             return {
                 "name": name,
                 "status": "exists",
@@ -121,7 +130,9 @@ def create_server(
             }
 
     # Get SSH key
+    print(f"[DEBUG] Looking up SSH key '{ssh_key_name}'...")
     ssh_keys = client.ssh_keys.get_all()
+    print(f"[DEBUG] Found {len(ssh_keys)} SSH keys in Hetzner")
     ssh_key = None
     for key in ssh_keys:
         if key.name == ssh_key_name:
@@ -130,36 +141,53 @@ def create_server(
 
     if not ssh_key:
         print(f"Warning: SSH key '{ssh_key_name}' not found, creating without SSH key")
+    else:
+        print(f"[DEBUG] Using SSH key: {ssh_key.name}")
 
     # Get cloud-init config with GitHub token
+    print(f"[DEBUG] Generating cloud-init config...")
     user_data = get_cloud_init_config(github_token, name, runner_count)
+    print(f"[DEBUG] Cloud-init config length: {len(user_data)} bytes")
 
     # Create server
     print(f"Creating server: {name}")
-    response = client.servers.create(
-        name=name,
-        server_type=ServerType(name=server_type),
-        image=Image(name=image),
-        ssh_keys=[ssh_key] if ssh_key else [],
-        user_data=user_data,
-    )
+    try:
+        response = client.servers.create(
+            name=name,
+            server_type=ServerType(name=server_type),
+            image=Image(name=image),
+            ssh_keys=[ssh_key] if ssh_key else [],
+            user_data=user_data,
+        )
+        print(f"[DEBUG] Server creation initiated")
+    except Exception as e:
+        print(f"[ERROR] Server creation failed: {e}")
+        raise
 
     # Wait for server creation to complete
     if response.action:
+        print(f"[DEBUG] Waiting for server creation action to complete...")
         response.action.wait_until_finished()
+        print(f"[DEBUG] Server creation action completed")
 
     # Get the server
     server = client.servers.get_by_name(name)
+    print(f"[DEBUG] Server retrieved: {server.name} (ID: {server.id})")
 
     # Wait for server to be running
     print(f"Waiting for {name} to be running...")
-    for _ in range(60):  # Wait up to 5 minutes
+    for i in range(60):  # Wait up to 5 minutes
         server = client.servers.get_by_name(name)
+        print(f"[DEBUG] Check {i+1}/60: Status={server.status}")
         if server.status == Server.STATUS_RUNNING:
+            print(f"[DEBUG] Server is running!")
             break
         time.sleep(5)
+    else:
+        print(f"[WARNING] Server did not reach RUNNING status after 5 minutes")
+        print(f"[DEBUG] Final status: {server.status}")
 
-    return {
+    result = {
         "name": name,
         "status": server.status,
         "id": server.id,
@@ -167,6 +195,8 @@ def create_server(
         "server_type": server.server_type.name,
         "image": server.image.name if server.image else None,
     }
+    print(f"[DEBUG] Server creation result: {result}")
+    return result
 
 
 def delete_servers(
@@ -257,6 +287,18 @@ def main():
 
     args = parser.parse_args()
 
+    # Debug: Show parsed arguments
+    print(f"[DEBUG] Action: {args.action}")
+    print(f"[DEBUG] Server type: {args.server_type}")
+    print(f"[DEBUG] Image: {args.image}")
+    print(f"[DEBUG] SSH key: {args.ssh_key}")
+    print(f"[DEBUG] Count: {args.count}")
+    print(f"[DEBUG] Index: {args.index}")
+    print(f"[DEBUG] Delete existing: {args.delete_existing}")
+    print(f"[DEBUG] Runner count: {args.runner_count}")
+    print(f"[DEBUG] Hetzner token present: {bool(args.hetzner_token)}")
+    print(f"[DEBUG] GitHub token present: {bool(args.github_token)}")
+
     if not args.hetzner_token:
         print("Error: Hetzner token required (use --hetzner-token or HCLOUD_TOKEN env var)")
         sys.exit(1)
@@ -276,12 +318,15 @@ def main():
     if args.action == "delete":
         # Delete servers
         server_names = [f"{SERVER_PREFIX}-{i}" for i in range(args.index, args.index + args.count)]
+        print(f"[DEBUG] Servers to delete: {server_names}")
         result = delete_servers(client, server_names)
     else:
         # Create servers
         servers = []
+        print(f"[DEBUG] Creating {args.count} server(s) starting from index {args.index}")
         for i in range(args.count):
             server_name = f"{SERVER_PREFIX}-{args.index + i}"
+            print(f"[DEBUG] Creating server {i+1}/{args.count}: {server_name}")
             server = create_server(
                 client,
                 name=server_name,
@@ -300,6 +345,7 @@ def main():
         }
 
     # Output JSON
+    print(f"[DEBUG] Final result: {json.dumps(result, indent=2)}")
     print(json.dumps(result, indent=2))
     return 0
 
