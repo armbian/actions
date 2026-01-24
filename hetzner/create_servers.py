@@ -66,8 +66,8 @@ runcmd:
   - apt-get update
   - apt-get install -y armbian-config
 
-  # Create 10GB swap file
-  - fallocate -l 10G /swapfile
+  # Create 20GB swap file
+  - fallocate -l 20G /swapfile
   - chmod 600 /swapfile
   - mkswap /swapfile
   - swapon /swapfile
