@@ -41,7 +41,7 @@ This action creates and manages Hetzner Cloud servers with GitHub Actions runner
     index: 0
     ssh-key: "UPLOAD"
     hetzner-token: ${{ secrets.HETZNER_ONE }}
-    github-token: ${{ secrets.GITHUB_RUNNER }}
+    github-token: ${{ secrets.HETZNER_RUNNER }}
     runner-count: 4
 ```
 
@@ -86,7 +86,7 @@ jobs:
           delete-existing: "true"
           ssh-key: "UPLOAD"
           hetzner-token: ${{ secrets.HETZNER_ONE }}
-          github-token: ${{ secrets.GITHUB_RUNNER }}
+          github-token: ${{ secrets.HETZNER_RUNNER }}
           runner-count: "${{ env.RUNNER_COUNT }}"
 ```
 
@@ -149,7 +149,7 @@ The workflow needs these permissions:
 You'll need to configure these secrets in your repository:
 
 - `HETZNER_ONE` - Hetzner Cloud API token
-- `GITHUB_RUNNER` - GitHub personal access token with `repo` scope
+- `HETZNER_RUNNER` - GitHub personal access token with `repo` scope
 - `UPLOAD` - SSH key name in Hetzner Cloud (must exist in your account)
 
 ## Troubleshooting
