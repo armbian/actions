@@ -5,6 +5,8 @@ Simple Hetzner Server Creator
 Creates N Hetzner Cloud servers with specified configuration.
 """
 
+print("[DEBUG] Script started, importing modules...")
+
 from __future__ import annotations
 
 import argparse
@@ -19,6 +21,7 @@ try:
     from hcloud.server_types import ServerType
     from hcloud.ssh_keys import SSHKey
     from hcloud.servers.domain import Server
+    print("[DEBUG] All imports successful")
 except ImportError as e:
     print(f"Missing required library: {e}")
     print("Install with: pip install hcloud")
@@ -228,6 +231,11 @@ def delete_servers(
 
 def main():
     """Main entry point."""
+    print("[DEBUG] main() function started")
+    print(f"[DEBUG] sys.argv: {sys.argv}")
+    print(f"[DEBUG] Environment HCLOUD_TOKEN: {'SET' if os.environ.get('HCLOUD_TOKEN') else 'NOT SET'}")
+    print(f"[DEBUG] Environment GITHUB_TOKEN: {'SET' if os.environ.get('GITHUB_TOKEN') else 'NOT SET'}")
+
     parser = argparse.ArgumentParser(
         description="Create Hetzner Cloud servers"
     )
@@ -286,6 +294,7 @@ def main():
     )
 
     args = parser.parse_args()
+    print(f"[DEBUG] Arguments parsed successfully")
 
     # Debug: Show parsed arguments
     print(f"[DEBUG] Action: {args.action}")
@@ -298,6 +307,7 @@ def main():
     print(f"[DEBUG] Runner count: {args.runner_count}")
     print(f"[DEBUG] Hetzner token present: {bool(args.hetzner_token)}")
     print(f"[DEBUG] GitHub token present: {bool(args.github_token)}")
+    print(f"[DEBUG] GitHub token value: '{args.github_token}'")
 
     if not args.hetzner_token:
         print("Error: Hetzner token required (use --hetzner-token or HCLOUD_TOKEN env var)")
@@ -306,6 +316,8 @@ def main():
     # GitHub token only required for create action
     if args.action != "delete" and not args.github_token:
         print("Error: GitHub token required for create action (use --github-token or GITHUB_TOKEN env var)")
+        print(f"[DEBUG] args.action: {args.action}")
+        print(f"[DEBUG] args.github_token: '{args.github_token}'")
         sys.exit(1)
 
     # Create client
