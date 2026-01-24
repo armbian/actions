@@ -1,123 +1,96 @@
-name: "Enable Hetzner VMs"
+name: "Create Hetzner Servers"
 author: "Igor Pecovnik"
+description: "Create Hetzner Cloud servers via matrix strategy"
+
 inputs:
-  action-type:
+  action:
     required: true
-  machine-type:
-    required: true
-  machine-id:
+    description: "Action: 'create' or 'delete'"
+  server-type:
     required: false
-  machine-count:
+    description: "Hetzner server type (e.g., cax21, cax31, cax41)"
+    default: "cax31"
+  image:
+    required: false
+    description: "OS image name"
+    default: "ubuntu-24.04"
+  ssh-key:
     required: true
-  runners-count:
+    description: "SSH key name in Hetzner Cloud"
+  index:
+    required: false
+    description: "Server index (for matrix builds)"
+    default: "0"
+  delete-existing:
+    required: false
+    description: "Delete existing server before creating"
+    default: "false"
+  hetzner-token:
     required: true
-  key:
-    required: true
-  known_hosts:
-    required: true
-  hetzner_id:
-    required: true
-  github_token:
-    required: true
+    description: "Hetzner Cloud API token"
+  github-token:
+    required: false
+    description: "GitHub token for runner registration (required for create action)"
+  runner-count:
+    required: false
+    description: "Number of runners per machine"
+    default: "2"
 
-concurrency:
-  cancel-in-progress: false
-
-runs:  
+runs:
   using: "composite"
   steps:
-
-    - name: Install SSH key for storage
-      if: ${{ github.repository_owner == 'Armbian' }}
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ inputs.key }}
-        known_hosts: ${{ inputs.known_hosts }}
-        if_key_exists: replace
-
-    - name: Install Homebrew
-      if: ${{ github.repository_owner == 'Armbian' }}
+    - name: Setup Python
       shell: bash
       run: |
+        if command -v python3 &> /dev/null; then
+          echo "Python3 already installed"
+        else
+          echo "Installing Python3..."
+          apt-get update -qq
+          apt-get install -y -qq python3 python3-pip
+        fi
 
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> ${HOME}/.bash_profile
+    - name: Install hcloud
+      shell: bash
+      run: |
+        pip3 install --break-system-packages hcloud || pip3 install hcloud
 
-    - name: Install CLI for Hetzner Cloud
-      if: ${{ github.repository_owner == 'Armbian' }}
+    - name: Create/Delete Hetzner Server
       shell: bash
       env:
-        HCLOUD_TOKEN: ${{ inputs.hetzner_id }}
+        HCLOUD_TOKEN: ${{ inputs.hetzner-token }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
+        set -e
 
-        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-        brew install hcloud
-        hcloud server list
+        CMD="python3 ${{ github.action_path }}/create_servers.py \
+          ${{ inputs.action }} \
+          --server-type ${{ inputs.server-type }} \
+          --image ${{ inputs.image }} \
+          --ssh-key ${{ inputs.ssh-key }} \
+          --index ${{ inputs.index }}"
 
-    - name: "Kill runners"
-      if: ${{ github.repository_owner == 'Armbian' && inputs.action-type == 'enable' }}
-      env:
-        HCLOUD_TOKEN: ${{ inputs.hetzner_id }}
-        HOMEBREW_NO_AUTO_UPDATE: 1
-        HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS: 3650
-      shell: bash
-      run: |
+        if [[ "${{ inputs.action }}" == "create" ]]; then
+          CMD="${CMD} --count 1 --runner-count ${{ inputs.runner-count }}"
+          if [[ "${{ inputs.delete-existing }}" == "true" ]]; then
+            CMD="${CMD} --delete-existing"
+          fi
+        else
+          CMD="${CMD} --count 1"
+        fi
 
-        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-        machinenames=("Faerie" "November" "Raven" "Hammer" "Foxtrot" "Papa" "Chimera" "Panther")
-        machinename="${machinenames[${{ inputs.machine-id }}]}"
-        machinenameid=$(hcloud server list --output columns=id,name | grep ${machinename} | cut -d" " -f1 || true)
-        [[ -n "${machinenameid}" ]] && hcloud server delete "${machinenameid}" || true
+        echo "Running: $CMD"
+        RESULT=$(eval $CMD)
+        EXIT_CODE=$?
 
-    - name: "Kill runners"
-      if: ${{ github.repository_owner == 'Armbian' && inputs.action-type == 'disable' }}
-      env:
-        HCLOUD_TOKEN: ${{ inputs.hetzner_id }}
-        HOMEBREW_NO_AUTO_UPDATE: 1
-        HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS: 3650
-      shell: bash
-      run: |
+        echo "### Result" >> $GITHUB_STEP_SUMMARY
+        echo '```json' >> $GITHUB_STEP_SUMMARY
+        echo "${RESULT}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
 
-        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-        # we will set fixed number and fixed machine names        
-        machinenames=("Faerie" "November" "Raven" "Hammer" "Foxtrot" "Papa" "Chimera" "Panther")
-        for machinename in "${machinenames[@]}"
-        do
-          machinenameid=$(hcloud server list --output columns=id,name | grep ${machinename} | cut -d" " -f1 || true)
-          [[ -n "${machinenameid}" ]] && hcloud server delete "${machinenameid}" || true
-        done
+        echo "${RESULT}"
 
-    - name: "Deploy runners"
-      if: ${{ inputs.action-type == 'enable' }}
-      env:
-        HCLOUD_TOKEN: ${{ inputs.hetzner_id }}        
-        GH_TOKEN: ${{ inputs.github_token }}
-        HOMEBREW_NO_AUTO_UPDATE: 1
-        HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS: 3650
-      shell: bash
-      run: |
-
-        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-        machinenames=("Faerie" "November" "Raven" "Hammer" "Foxtrot" "Papa" "Chimera" "Panther")
-        machinename="${machinenames[${{ inputs.machine-id }}]}"
-        echo -e '#!/bin/bash\n\
-        export STOP=${{ inputs.runners-count}} NAME=${machinename} GH_TOKEN=${{ env.GH_TOKEN }}\n\
-        git clone https://github.com/armbian/scripts\ncd scripts/generate-runners\n\
-        ./deploy.sh" | \
-        hcloud server create --name ${machinename} --image ubuntu-22.04 --type ${{ inputs.machine-type }} --ssh-key TORRENT --user-data-from-file -
-        
-    - name: Remove runners
-      if: ${{ inputs.action-type == 'disable' }}
-      env:
-        GH_TOKEN: ${{ inputs.github_token }}
-      shell: bash
-      run: |
-
-        # make sure all are down
-        sleep 60
-
-        RUNNERS=$(gh api \
-        -H "Accept: application/vnd.github+json" \
-        -H "X-GitHub-Api-Version: 2022-11-28" \
-        "/repos/armbian/os/actions/runners?per_page=1000" | \
-        jq -r '.runners[] | select(.labels[].name=="temp")' | jq '.id')
+        if [ $EXIT_CODE -ne 0 ]; then
+          echo "::error::Action failed with exit code ${EXIT_CODE}"
+          exit $EXIT_CODE
+        fi
