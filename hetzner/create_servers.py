@@ -21,6 +21,7 @@ try:
     from hcloud.server_types import ServerType
     from hcloud.ssh_keys import SSHKey
     from hcloud.servers.domain import Server
+    from hcloud._exceptions import APIException
     print("[DEBUG] All imports successful")
 except ImportError as e:
     print(f"Missing required library: {e}")
@@ -30,6 +31,13 @@ except ImportError as e:
 
 # Server name prefix
 SERVER_PREFIX = "hetzner-runner"
+
+# Server type fallback order (largest to smallest)
+SERVER_TYPE_FALLBACKS = {
+    "cax41": ["cax41", "cax31", "cax21"],
+    "cax31": ["cax31", "cax21"],
+    "cax21": ["cax21"],
+}
 
 
 def get_cloud_init_config(github_token: str, runner_name: str, runner_count: int = 2) -> str:
@@ -152,20 +160,48 @@ def create_server(
     user_data = get_cloud_init_config(github_token, name, runner_count)
     print(f"[DEBUG] Cloud-init config length: {len(user_data)} bytes")
 
-    # Create server
-    print(f"Creating server: {name}")
-    try:
-        response = client.servers.create(
-            name=name,
-            server_type=ServerType(name=server_type),
-            image=Image(name=image),
-            ssh_keys=[ssh_key] if ssh_key else [],
-            user_data=user_data,
-        )
-        print(f"[DEBUG] Server creation initiated")
-    except Exception as e:
-        print(f"[ERROR] Server creation failed: {e}")
-        raise
+    # Get fallback server types
+    fallback_types = SERVER_TYPE_FALLBACKS.get(server_type, [server_type])
+    print(f"[DEBUG] Will try server types in order: {fallback_types}")
+
+    # Try creating server with fallback to smaller types
+    response = None
+    actual_server_type = None
+
+    for i, try_type in enumerate(fallback_types):
+        print(f"Attempting to create server {name} with type {try_type} (attempt {i+1}/{len(fallback_types)})...")
+
+        try:
+            response = client.servers.create(
+                name=name,
+                server_type=ServerType(name=try_type),
+                image=Image(name=image),
+                ssh_keys=[ssh_key] if ssh_key else [],
+                user_data=user_data,
+            )
+            actual_server_type = try_type
+            print(f"[DEBUG] Server creation initiated with type {try_type}")
+            break
+        except APIException as e:
+            if "resource_unavailable" in str(e) or "placement" in str(e):
+                print(f"[WARNING] Server type {try_type} unavailable: {e}")
+                if i < len(fallback_types) - 1:
+                    print(f"[INFO] Retrying with smaller server type...")
+                    continue
+                else:
+                    print(f"[ERROR] All server types exhausted. Last error: {e}")
+                    raise
+            else:
+                # Not a placement error, re-raise immediately
+                print(f"[ERROR] Server creation failed with non-placement error: {e}")
+                raise
+        except Exception as e:
+            print(f"[ERROR] Server creation failed: {e}")
+            raise
+
+    if not response or not actual_server_type:
+        print(f"[ERROR] Failed to create server after trying all types")
+        raise Exception("Server creation failed: all types exhausted")
 
     # Wait for server creation to complete
     if response.action:
@@ -197,7 +233,13 @@ def create_server(
         "public_ip": server.public_net.ipv4.ip if server.public_net else None,
         "server_type": server.server_type.name,
         "image": server.image.name if server.image else None,
+        "requested_type": server_type,
     }
+
+    # Warn if we had to fall back to a smaller type
+    if actual_server_type != server_type:
+        print(f"[WARNING] Requested {server_type} but created {actual_server_type} due to capacity constraints")
+
     print(f"[DEBUG] Server creation result: {result}")
     return result
 
