@@ -39,6 +39,16 @@ SERVER_TYPE_FALLBACKS = {
     "cax21": ["cax21"],
 }
 
+# Maximum runners per server type (assuming 8GB per runner)
+# cax41: 16 vCPU, 32GB RAM → 4 runners
+# cax31: 8 vCPU, 16GB RAM → 2 runners
+# cax21: 4 vCPU, 8GB RAM → 1 runner
+MAX_RUNNERS_PER_TYPE = {
+    "cax41": 4,
+    "cax31": 2,
+    "cax21": 1,
+}
+
 
 def get_cloud_init_config(github_token: str, runner_name: str, runner_count: int = 2) -> str:
     """Generate cloud-init configuration with GitHub token injected."""
@@ -155,21 +165,32 @@ def create_server(
     else:
         print(f"[DEBUG] Using SSH key: {ssh_key.name}")
 
-    # Get cloud-init config with GitHub token
-    print(f"[DEBUG] Generating cloud-init config...")
-    user_data = get_cloud_init_config(github_token, name, runner_count)
-    print(f"[DEBUG] Cloud-init config length: {len(user_data)} bytes")
-
     # Get fallback server types
     fallback_types = SERVER_TYPE_FALLBACKS.get(server_type, [server_type])
     print(f"[DEBUG] Will try server types in order: {fallback_types}")
 
+    # Store original requested runner count
+    requested_runner_count = runner_count
+
     # Try creating server with fallback to smaller types
     response = None
     actual_server_type = None
+    actual_runner_count = None
 
     for i, try_type in enumerate(fallback_types):
         print(f"Attempting to create server {name} with type {try_type} (attempt {i+1}/{len(fallback_types)})...")
+
+        # Adjust runner count based on server type
+        max_runners = MAX_RUNNERS_PER_TYPE.get(try_type, 1)
+        actual_runner_count = min(requested_runner_count, max_runners)
+
+        if try_type != server_type:
+            print(f"[INFO] Adjusted runner count from {requested_runner_count} to {actual_runner_count} for {try_type}")
+
+        # Generate cloud-init config with adjusted runner count
+        print(f"[DEBUG] Generating cloud-init config with {actual_runner_count} runner(s)...")
+        user_data = get_cloud_init_config(github_token, name, actual_runner_count)
+        print(f"[DEBUG] Cloud-init config length: {len(user_data)} bytes")
 
         try:
             response = client.servers.create(
@@ -183,7 +204,8 @@ def create_server(
             print(f"[DEBUG] Server creation initiated with type {try_type}")
             break
         except APIException as e:
-            if "resource_unavailable" in str(e) or "placement" in str(e):
+            error_str = str(e).lower()
+            if "resource_unavailable" in error_str or "placement" in error_str or "unavailable" in error_str:
                 print(f"[WARNING] Server type {try_type} unavailable: {e}")
                 if i < len(fallback_types) - 1:
                     print(f"[INFO] Retrying with smaller server type...")
@@ -234,11 +256,15 @@ def create_server(
         "server_type": server.server_type.name,
         "image": server.image.name if server.image else None,
         "requested_type": server_type,
+        "requested_runners": requested_runner_count,
+        "actual_runners": actual_runner_count,
     }
 
-    # Warn if we had to fall back to a smaller type
+    # Warn if we had to fall back to a smaller type or fewer runners
     if actual_server_type != server_type:
         print(f"[WARNING] Requested {server_type} but created {actual_server_type} due to capacity constraints")
+    if actual_runner_count != requested_runner_count:
+        print(f"[WARNING] Requested {requested_runner_count} runners but configured {actual_runner_count} for {actual_server_type}")
 
     print(f"[DEBUG] Server creation result: {result}")
     return result
