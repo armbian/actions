@@ -78,6 +78,8 @@ runs:
             - u-boot.rom.xz: -u-boot-rom
             - hyperv.zip: -hyperv
             - hyperv.img.xz: -hyperv
+            - fip.img.xz: -fip
+            - lk.bin.xz: -lk-bin
 
           servers:
           EOF
