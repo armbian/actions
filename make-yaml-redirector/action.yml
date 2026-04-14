@@ -77,9 +77,14 @@ runs:
             - boot.bin.xz: -boot
             - u-boot.rom.xz: -u-boot-rom
             - hyperv.zip: -hyperv
+            - hyperv.zip.xz: -hyperv
             - hyperv.img.xz: -hyperv
             - fip.img.xz: -fip
             - lk.bin.xz: -lk-bin
+            - boe.img.xz: -boe
+            - csot.img.xz: -csot
+            - kebab.img.xz: -kebab
+            - recovery.img.xz: -recovery
 
           servers:
           EOF
