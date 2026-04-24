@@ -12,6 +12,8 @@ import json
 import os
 import sys
 import time
+import urllib.error
+import urllib.request
 
 print("[DEBUG] Script started, importing modules...")
 
@@ -48,6 +50,71 @@ MAX_RUNNERS_PER_TYPE = {
     "cax31": 2,
     "cax21": 1,
 }
+
+
+def validate_github_token(github_token: str, organisation: str) -> None:
+    """
+    Verify the GitHub token can list runners at the target organisation
+    BEFORE we provision any Hetzner VMs.
+
+    Without this check the typical failure mode is:
+      1. action reports success (VM created, status RUNNING within ~30s)
+      2. cloud-init runs for 5-10 min
+      3. `armbian-config --api module_armbian_runners install ...` POSTs
+         `/orgs/<org>/actions/runners/registration-token` — gets 401/403
+      4. The response body goes into `jq -r .token` which silently
+         yields the string "null"
+      5. `./config.sh --token null --unattended` fails with a cryptic
+         message buried in /var/log/cloud-init-output.log
+      6. Zero runners ever come online; we've paid for a VM that does
+         nothing.
+
+    The same token scope that can call registration-token can also
+    list runners — so `GET /orgs/<org>/actions/runners?per_page=1` is
+    a cheap, side-effect-free proxy. Fail loudly here instead.
+
+    Exits the process non-zero on any failure (unauthorised, missing
+    scope, network issue, unknown org). Returns silently on HTTP 200.
+    """
+    url = f"https://api.github.com/orgs/{organisation}/actions/runners?per_page=1"
+    req = urllib.request.Request(url)
+    req.add_header("Accept", "application/vnd.github+json")
+    req.add_header("Authorization", f"Bearer {github_token}")
+    req.add_header("X-GitHub-Api-Version", "2022-11-28")
+
+    print(f"[DEBUG] Validating GitHub token against {url} ...")
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            if resp.status == 200:
+                print("[DEBUG] GitHub token validation OK (HTTP 200)")
+                return
+            print(f"[ERROR] GitHub token validation: unexpected HTTP {resp.status}")
+    except urllib.error.HTTPError as e:
+        print(f"[ERROR] GitHub token validation failed: HTTP {e.code}")
+        if e.code == 401:
+            print("  Token is invalid or expired. Generate a new one.")
+        elif e.code == 403:
+            print(f"  Token authenticates but lacks permission to manage runners on '{organisation}'.")
+        elif e.code == 404:
+            print(f"  Organisation '{organisation}' not found, or token has no visibility to it.")
+        else:
+            try:
+                body = e.read().decode(errors="replace")[:500]
+                print(f"  Body: {body}")
+            except Exception:
+                pass
+    except urllib.error.URLError as e:
+        print(f"[ERROR] GitHub token validation: could not reach api.github.com ({e.reason})")
+    except Exception as e:
+        print(f"[ERROR] GitHub token validation: unexpected error ({e})")
+
+    print("")
+    print("  Required scopes:")
+    print("    - Classic PAT:      admin:org (org runners) or repo (repo runners)")
+    print("    - Fine-grained PAT: org 'Self-hosted runners' → Read and write")
+    print("")
+    print("Aborting BEFORE provisioning any Hetzner VM.")
+    sys.exit(1)
 
 
 def get_cloud_init_config(github_token: str, runner_name: str, runner_count: int = 2) -> str:
@@ -389,6 +456,18 @@ def main():
         print(f"[DEBUG] args.action: {args.action}")
         print(f"[DEBUG] args.github_token: '{args.github_token}'")
         sys.exit(1)
+
+    # Validate the GitHub token NOW, before we spin up Hetzner VMs that
+    # won't be usable if the token is stale. Cheap read-only API call;
+    # exits non-zero with an actionable error on 401/403/404/network.
+    # Skip for delete (no registration happens there).
+    #
+    # Organisation is hardcoded here to match the value baked into
+    # get_cloud_init_config() (`organisation=armbian` on the
+    # module_armbian_runners install line). Parameterise both together
+    # if this action is ever reused for a different org.
+    if args.action != "delete":
+        validate_github_token(args.github_token, organisation="armbian")
 
     # Create client
     client = Client(
