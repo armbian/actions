@@ -21,6 +21,6 @@ runs:
 
     - name: Cancel if not a part of the team
       if: ${{ steps.checkUserMember.outputs.isTeamMember == 'false' }}
-      uses: "andymckay/cancel-action@0.3"
+      uses: "andymckay/cancel-action@0.5"
       with:
         token: ${{ inputs.GITHUB_TOKEN }}
