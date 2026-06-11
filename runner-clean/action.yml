@@ -23,7 +23,13 @@ runs:
             echo "${var}=${value}" >> "$GITHUB_ENV"
           done
 
-          # git proxy: route github.com through the local git_cdn mirror
+          # git proxy: route github.com through the local git_cdn mirror.
+          # Clear any previous rewrite first (the proxy may have changed or been
+          # dropped in NetBox); ~/.gitconfig persists on the machine otherwise.
+          while read -r key _; do
+            git config --global --unset-all "$key" '^https://github\.com/$' 2>/dev/null || true
+          done < <(git config --global --get-regexp '\.insteadof$' 2>/dev/null | grep -i 'https://github.com/$' | awk '{print $1}')
+
           git_proxy="$(jq -r '.git_proxy // ""' <<< "$info")"
           if [[ -n "$git_proxy" ]]; then
             echo "git config --global url.\"${git_proxy}\".insteadOf https://github.com/"
