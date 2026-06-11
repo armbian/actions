@@ -1,6 +1,6 @@
-name: "Runner cleaning"
+name: "Runner setup and cleaning"
 author: "Igor Pecovnik"
-description: "Cleaning self hosted runners"
+description: "Configure self hosted runner proxies/caches and clean its workspace"
 runs:
   using: "composite"
   steps:
