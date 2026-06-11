@@ -32,6 +32,10 @@ runs:
 
           git_proxy="$(jq -r '.git_proxy // ""' <<< "$info")"
           if [[ -n "$git_proxy" ]]; then
+            # insteadOf replaces the 'https://github.com/' prefix (trailing
+            # slash included), so the proxy base must end in exactly one slash
+            # — otherwise host:port glues onto the path (':8000armbian/...').
+            git_proxy="${git_proxy%/}/"
             echo "git config --global url.\"${git_proxy}\".insteadOf https://github.com/"
             git config --global url."${git_proxy}".insteadOf https://github.com/
           fi
@@ -66,5 +70,6 @@ runs:
         if: ${{ env.RUNNER_USER != 'runner' }}
         shell: bash
         run: |
-          sudo chown -R $USER:$USER . 2> /dev/null || true
+          # Temporarily disabled to check whether this is still needed:
+          #sudo chown -R $USER:$USER . 2> /dev/null || true
           sudo rm -f lib/tools/common/__pycache__/bash_declare_parser.cpython-310.pyc 2> /dev/null || true
