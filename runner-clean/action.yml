@@ -1,22 +1,45 @@
-name: "Runner clening"
+name: "Runner cleaning"
 author: "Igor Pecovnik"
 description: "Cleaning self hosted runners"
 runs:
   using: "composite"
   steps:
 
-      - name: "Remove JSON files"
-        if: ${{ env.RUNNER_USER != runner }}
+      - name: "Runner info for ${{ runner.name }}"
         shell: bash
         run: |
+          info="$(curl -fsSL "https://github.armbian.com/servers/github-runners.jq" \
+            | jq --arg name "${{ runner.name }}" '
+                ($name | sub("-[0-9]+$"; "")) as $base
+                | first(.[] | select((.host | split(".")[0]) == $base)) // {}
+              ')"
+          echo "Runner info for ${{ runner.name }}:"
+          echo "$info"
+          echo "--- Exported environment ---"
+          for map in apt_proxy:APT_PROXY_ADDR oci_cache:GHCR_MIRROR_ADDRESS redis_cache:CCACHE_REMOTE_STORAGE; do
+            key="${map%%:*}"; var="${map##*:}"
+            value="$(jq -r --arg k "$key" '.[$k] // ""' <<< "$info")"
+            echo "${var}=${value}"
+            echo "${var}=${value}" >> "$GITHUB_ENV"
+          done
 
+          # git proxy: route github.com through the local git_cdn mirror
+          git_proxy="$(jq -r '.git_proxy // ""' <<< "$info")"
+          if [[ -n "$git_proxy" ]]; then
+            echo "git config --global url.\"${git_proxy}\".insteadOf https://github.com/"
+            git config --global url."${git_proxy}".insteadOf https://github.com/
+          fi
+
+      - name: "Remove JSON files"
+        if: ${{ env.RUNNER_USER != 'runner' }}
+        shell: bash
+        run: |
           sudo rm -rf JSON *.json *.tmp *.parts
 
       - name: "Remove output folder"
-        if: ${{ env.RUNNER_USER != runner }}
+        if: ${{ env.RUNNER_USER != 'runner' }}
         shell: bash
         run: |
-
           sudo rm -rf cache/toolchain/*
           sudo rm -rf cache/rootfs/*
           sudo rm -rf build/cache/toolchain/*
@@ -25,36 +48,23 @@ runs:
           if [[ $(df --total -hl --output=pcent | tail -1 | xargs | sed "s/%//g") -gt 70 ]]; then
               sudo rm -rf cache/sources/*
               sudo rm -rf build/cache/sources/*
-          fi          
+          fi
           sudo rm -rf output/{images,debs,debs-beta}/*
           sudo rm -rf userpatches/*
           sudo rm -rf build/output/{images,debs,debs-beta}/*
           sudo rm -rf build/userpatches/*
-          
 
       - name: "Fix permissions"
-        if: ${{ env.RUNNER_USER != runner }}
-        shell: bash 
+        if: ${{ env.RUNNER_USER != 'runner' }}
+        shell: bash
         run: |
-        
-          #sudo chown -R $USER:$USER cache/. 2> /dev/null || true
           sudo chown -R $USER:$USER . 2> /dev/null || true
-          #sudo rm -f build/lib/tools/common/__pycache__/bash_declare_parser.cpython-310.pyc 2> /dev/null || true
           sudo rm -f lib/tools/common/__pycache__/bash_declare_parser.cpython-310.pyc 2> /dev/null || true
 
-      - name: Remove dangling Docker images
-        if: ${{ env.RUNNER_USER != runner }}
-        shell: bash 
+      - name: "Remove Other projects"
+        if: ${{ env.RUNNER_USER != 'runner' }}
+        shell: bash
         run: |
-
-          # sudo docker image prune -a --force || true
-
-      - name: Remove Other projects
-        if: ${{ env.RUNNER_USER != runner }}
-        shell: bash 
-        run: |
-
-          cd ../..
           PROJECT=$(echo ${{ github.workspace }} | rev | cut -d'/' -f 1 | rev)
           sudo find $(echo ${{ github.workspace }} | rev | cut -d"/" -f3- | rev) \
           -mindepth 1 -maxdepth 1 ! -name "_*" ! -name ${PROJECT} -exec sudo rm -rf {} + || true
