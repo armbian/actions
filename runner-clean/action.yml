@@ -40,18 +40,20 @@ runs:
         if: ${{ env.RUNNER_USER != 'runner' }}
         shell: bash
         run: |
-          # clean toolchain/rootfs/sources only if usage goes over 70% (arbitrary)
-          if [[ $(df --total -hl --output=pcent | tail -1 | xargs | sed "s/%//g") -gt 70 ]]; then
+          # clean toolchain/rootfs/sources and debs only if usage goes over 90% (arbitrary)
+          if [[ $(df --total -hl --output=pcent | tail -1 | xargs | sed "s/%//g") -gt 90 ]]; then
               sudo rm -rf cache/toolchain/*
               sudo rm -rf cache/rootfs/*
               sudo rm -rf build/cache/toolchain/*
               sudo rm -rf build/cache/rootfs/*
               sudo rm -rf cache/sources/*
               sudo rm -rf build/cache/sources/*
+              sudo rm -rf output/{debs,debs-beta}/*
+              sudo rm -rf build/output/{debs,debs-beta}/*
           fi
-          sudo rm -rf output/{images,debs,debs-beta}/*
+          sudo rm -rf output/images/*
           sudo rm -rf userpatches/*
-          sudo rm -rf build/output/{images,debs,debs-beta}/*
+          sudo rm -rf build/output/images/*
           sudo rm -rf build/userpatches/*
 
       - name: "Fix permissions"
