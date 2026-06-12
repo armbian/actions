@@ -40,6 +40,17 @@ runs:
             git config --global url."${git_proxy}".insteadOf https://github.com/
           fi
 
+          # Per-runner xz memory cap: 70% of host RAM split across its runners,
+          # leaving headroom for the OS and the build itself. Consumed by the
+          # build's `xz --memlimit-compress` (overrides its 10 GiB default).
+          mem_mb="$(jq -r '.memory // 0' <<< "$info")"
+          n_runners="$(jq -r '.runners // 0' <<< "$info")"
+          if (( mem_mb > 0 && n_runners > 0 )); then
+            xz_cap_mb=$(( mem_mb * 7 / 10 / n_runners ))
+            echo "IMAGE_XZ_MEMLIMIT=${xz_cap_mb}MiB"
+            echo "IMAGE_XZ_MEMLIMIT=${xz_cap_mb}MiB" >> "$GITHUB_ENV"
+          fi
+
       - name: "Remove JSON files"
         if: ${{ env.RUNNER_USER != 'runner' }}
         shell: bash
