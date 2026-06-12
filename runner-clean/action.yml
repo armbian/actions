@@ -81,6 +81,15 @@ runs:
         if: ${{ env.RUNNER_USER != 'runner' }}
         shell: bash
         run: |
-          # Temporarily disabled to check whether this is still needed:
-          #sudo chown -R $USER:$USER . 2> /dev/null || true
+          # Docker/chroot build steps leave some files under the workspace owned
+          # by root (e.g. cache/aptcache/lists). actions/checkout's pre-checkout
+          # "Deleting the contents of ..." runs as the runner user (no sudo) and
+          # then fails with: EACCES: permission denied, rmdir '.../cache/aptcache/lists'.
+          # Chown those back to the runner user — but *selectively*: only files
+          # NOT already owned by this user/group, so we skip the vast majority of
+          # correctly-owned files instead of a full recursive chown of a multi-GB
+          # workspace on every run (which is why the blanket chown was dropped).
+          me_u="$(id -un)"; me_g="$(id -gn)"
+          sudo find . \( ! -user "$me_u" -o ! -group "$me_g" \) -exec chown "${me_u}:${me_g}" {} + 2> /dev/null || true
+
           sudo rm -f lib/tools/common/__pycache__/bash_declare_parser.cpython-310.pyc 2> /dev/null || true
