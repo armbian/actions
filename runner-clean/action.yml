@@ -23,20 +23,22 @@ runs:
             echo "${var}=${value}" >> "$GITHUB_ENV"
           done
 
-          # Normalize the generic proxy env to THIS runner's advertised apt proxy.
-          # A stale http_proxy in the runner's own environment (e.g. a datacenter
-          # leftover that a host grep won't find) otherwise leaks into builds:
-          # docker.sh forwards http_proxy into the build container, and apt there
-          # points at an unreachable cache (e.g. 10.0.40.2:3142) and times out.
-          # Make the NetBox json the single source of truth — set http(s)_proxy to
-          # the advertised proxy, or blank it when this runner has none. Written via
-          # $GITHUB_ENV so it overrides the runner-injected value for all later steps.
+          # Clear a stale generic proxy on runners that advertise NO apt proxy.
+          # Such a leftover (e.g. a datacenter http_proxy a host grep won't find)
+          # leaks into builds — docker.sh forwards http_proxy into the build
+          # container, and apt there points at an unreachable cache (e.g.
+          # 10.0.40.2:3142) and times out. Clear it via $GITHUB_ENV so it can't.
+          # Runners that DO advertise a proxy are left untouched: apt uses
+          # APT_PROXY_ADDR and git uses git_proxy. The apt-cacher-ng address is
+          # apt-only and must NOT become the generic http(s)_proxy (acng can't
+          # proxy general HTTPS like ghcr.io/github.com).
           apt_proxy="$(jq -r '.apt_proxy // ""' <<< "$info")"
-          proxy_url=""; [[ -n "$apt_proxy" ]] && proxy_url="http://${apt_proxy}"
-          for v in http_proxy https_proxy HTTP_PROXY HTTPS_PROXY; do
-            echo "${v}=${proxy_url}"
-            echo "${v}=${proxy_url}" >> "$GITHUB_ENV"
-          done
+          if [[ -z "$apt_proxy" ]]; then
+            for v in http_proxy https_proxy HTTP_PROXY HTTPS_PROXY; do
+              echo "${v}="
+              echo "${v}=" >> "$GITHUB_ENV"
+            done
+          fi
 
           # git proxy: route github.com through the local git_cdn mirror.
           # Clear any previous rewrite first (the proxy may have changed or been
