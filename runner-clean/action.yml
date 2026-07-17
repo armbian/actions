@@ -110,3 +110,27 @@ runs:
           sudo find . \( ! -user "$me_u" -o ! -group "$me_g" \) -exec chown "${me_u}:${me_g}" {} + 2> /dev/null || true
 
           sudo rm -f lib/tools/common/__pycache__/bash_declare_parser.cpython-310.pyc 2> /dev/null || true
+
+      - name: "Register qemu binfmt handlers"
+        if: ${{ env.RUNNER_USER != 'runner' }}
+        shell: bash
+        run: |
+          # Cross-arch (container) rootfs builds need qemu-user binfmt_misc
+          # handlers registered on the HOST kernel. The build's in-container
+          # `update-binfmts --enable` only *enables* handlers already present in
+          # the host binfmt database, so a runner that was never set up by hand
+          # fails at prepare_host_binfmt_qemu, e.g.:
+          #   Failed to update binfmts  update-binfmts --enable qemu-aarch64
+          # Register them here so every runner works without manual per-host setup.
+          set -euo pipefail
+          if ! dpkg -s qemu-user-static > /dev/null 2>&1 || ! dpkg -s binfmt-support > /dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends qemu-user-static binfmt-support
+          fi
+          # binfmt_misc must be mounted for the registrations to stick.
+          sudo mountpoint -q /proc/sys/fs/binfmt_misc \
+            || sudo mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+          # Import + enable all packaged qemu handlers (idempotent). The F
+          # (fix-binary) flag comes from qemu-user-static's binfmt definitions,
+          # so the handlers keep working inside the build container.
+          sudo update-binfmts --import 2> /dev/null || true
