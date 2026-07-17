@@ -111,6 +111,19 @@ runs:
 
           sudo rm -f lib/tools/common/__pycache__/bash_declare_parser.cpython-310.pyc 2> /dev/null || true
 
+      - name: "Ensure host CLI tools"
+        if: ${{ env.RUNNER_USER != 'runner' }}
+        shell: bash
+        run: |
+          # The workflow's post-build reporting runs `tree output/...` on the
+          # HOST (not inside the build container), so tree must exist on the
+          # runner or the step fails with "tree: command not found".
+          # Best-effort and idempotent - never fail runner setup over this.
+          command -v tree > /dev/null 2>&1 || {
+            sudo apt-get update || true
+            sudo apt-get install -y --no-install-recommends tree || true
+          }
+
       - name: "Register qemu binfmt handlers"
         if: ${{ env.RUNNER_USER != 'runner' }}
         shell: bash
