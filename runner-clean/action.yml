@@ -122,15 +122,25 @@ runs:
           # fails at prepare_host_binfmt_qemu, e.g.:
           #   Failed to update binfmts  update-binfmts --enable qemu-aarch64
           # Register them here so every runner works without manual per-host setup.
-          set -euo pipefail
-          if ! dpkg -s qemu-user-static > /dev/null 2>&1 || ! dpkg -s binfmt-support > /dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y --no-install-recommends qemu-user-static binfmt-support
+          #
+          # Best-effort: this must NEVER fail runner setup (no `set -e`). A build
+          # that genuinely needs qemu will still report its own clear error; a
+          # native-arch build that doesn't need it must not be blocked here.
+          set -uo pipefail
+          if ! { dpkg -s qemu-user-static || dpkg -s qemu-user-binfmt; } > /dev/null 2>&1 \
+             || ! dpkg -s binfmt-support > /dev/null 2>&1; then
+            sudo apt-get update || true
+            # `qemu-user-static` is a real package on most releases, but a virtual
+            # one on newer Ubuntu (arm64 host: provided by qemu-user-binfmt); try
+            # the static package first, then fall back to the binfmt provider.
+            sudo apt-get install -y --no-install-recommends qemu-user-static binfmt-support \
+              || sudo apt-get install -y --no-install-recommends qemu-user-binfmt binfmt-support \
+              || true
           fi
           # binfmt_misc must be mounted for the registrations to stick.
           sudo mountpoint -q /proc/sys/fs/binfmt_misc \
-            || sudo mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+            || sudo mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc 2> /dev/null || true
           # Import + enable all packaged qemu handlers (idempotent). The F
-          # (fix-binary) flag comes from qemu-user-static's binfmt definitions,
-          # so the handlers keep working inside the build container.
+          # (fix-binary) flag comes from the qemu binfmt definitions, so the
+          # handlers keep working inside the build container.
           sudo update-binfmts --import 2> /dev/null || true
