@@ -94,6 +94,20 @@ runs:
           sudo rm -rf build/output/images/*
           sudo rm -rf build/userpatches/*
 
+      - name: "Drop stale amlogic FIP source caches"
+        if: ${{ env.RUNNER_USER != 'runner' }}
+        shell: bash
+        run: |
+          # meson64/jethub builds fetch two amlogic-boot-fip repos into the
+          # persistent, bind-mounted source cache. The "Fix permissions" step
+          # below chowns them to the runner user, but the build container's git
+          # runs as root -> "detected dubious ownership". The framework's
+          # safe.directory guard normally bridges that, but misses the shorter
+          # name (a regex prefix of the -jethub one), so the LibreELEC fetch
+          # dies (git.sh:51, error 17). Re-cloning fresh as root each build
+          # sidesteps it; these repos are only a few MB.
+          sudo rm -rf cache/sources/amlogic-boot-fip* build/cache/sources/amlogic-boot-fip*
+
       - name: "Fix permissions"
         if: ${{ env.RUNNER_USER != 'runner' }}
         shell: bash
