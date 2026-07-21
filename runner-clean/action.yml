@@ -138,6 +138,30 @@ runs:
             sudo apt-get install -y --no-install-recommends tree || true
           }
 
+      - name: "Ensure docker buildx"
+        if: ${{ env.RUNNER_USER != 'runner' }}
+        shell: bash
+        run: |
+          # The build uses `docker buildx build` when available; without it the
+          # build image is rebuilt from scratch on every run and the leftovers
+          # are never cleaned up (see the build's lib/functions/host/docker.sh,
+          # which warns to install 'docker-buildx'). Docker itself is almost
+          # always present on the runners; buildx is the piece that may be
+          # missing - install it on runners that lack it.
+          #
+          # All supported runner host OSes (Debian trixie, Ubuntu noble, Ubuntu
+          # resolute) ship the buildx plugin as 'docker-buildx' in their distro
+          # repos, so a single package name covers them.
+          #
+          # Best-effort and idempotent - never fail runner setup over this. A
+          # runner without buildx still builds (just slower, rebuilding the
+          # image each time), so this must not block setup.
+          set -uo pipefail
+          if command -v docker > /dev/null 2>&1 && ! docker buildx version > /dev/null 2>&1; then
+            sudo apt-get update || true
+            sudo apt-get install -y --no-install-recommends docker-buildx || true
+          fi
+
       - name: "Register qemu binfmt handlers"
         if: ${{ env.RUNNER_USER != 'runner' }}
         shell: bash
