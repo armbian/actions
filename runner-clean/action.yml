@@ -145,13 +145,18 @@ runs:
           # The build uses `docker buildx build` when available; without it the
           # build image is rebuilt from scratch on every run and the leftovers
           # are never cleaned up (see the build's lib/functions/host/docker.sh,
-          # which warns to install 'docker-buildx'). Docker itself is almost
-          # always present on the runners; buildx is the piece that may be
-          # missing - install it on runners that lack it.
+          # which warns to install docker-buildx). Docker itself is almost always
+          # present on the runners; buildx is the piece that may be missing.
           #
-          # All supported runner host OSes (Debian trixie, Ubuntu noble, Ubuntu
-          # resolute) ship the buildx plugin as 'docker-buildx' in their distro
-          # repos, so a single package name covers them.
+          # The correct buildx package depends on HOW docker was installed, not
+          # on the OS release - the fleet is mixed:
+          #   * Docker CE (get.docker.com / download.docker.com apt repo, e.g.
+          #     the Hetzner runners)      -> docker-buildx-plugin
+          #   * distro docker.io (Debian/Ubuntu repos) -> docker-buildx
+          # These are NOT interchangeable: Debian's docker-buildx Depends on
+          # docker.io, so installing it on a Docker-CE host would drag in the
+          # distro engine and conflict. Pick the package that matches the docker
+          # that's actually installed.
           #
           # Best-effort and idempotent - never fail runner setup over this. A
           # runner without buildx still builds (just slower, rebuilding the
@@ -159,7 +164,11 @@ runs:
           set -uo pipefail
           if command -v docker > /dev/null 2>&1 && ! docker buildx version > /dev/null 2>&1; then
             sudo apt-get update || true
-            sudo apt-get install -y --no-install-recommends docker-buildx || true
+            if dpkg -s docker-ce-cli > /dev/null 2>&1 || dpkg -s docker-ce > /dev/null 2>&1; then
+              sudo apt-get install -y --no-install-recommends docker-buildx-plugin || true
+            else
+              sudo apt-get install -y --no-install-recommends docker-buildx || true
+            fi
           fi
 
       - name: "Register qemu binfmt handlers"
