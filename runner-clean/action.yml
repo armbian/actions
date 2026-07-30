@@ -187,12 +187,23 @@ runs:
           # that genuinely needs qemu will still report its own clear error; a
           # native-arch build that doesn't need it must not be blocked here.
           set -uo pipefail
-          if ! { dpkg -s qemu-user-static || dpkg -s qemu-user-binfmt; } > /dev/null 2>&1 \
-             || ! dpkg -s binfmt-support > /dev/null 2>&1; then
-            sudo apt-get update || true
-            # `qemu-user-static` is a real package on most releases, but a virtual
-            # one on newer Ubuntu (arm64 host: provided by qemu-user-binfmt); try
-            # the static package first, then fall back to the binfmt provider.
+          # Keep qemu CURRENT, don't just install-if-absent. Cross-arch postinsts
+          # (e.g. linux-headers) run under qemu-aarch64-static, and a stale host
+          # qemu can't emulate newer guest syscalls -> "tar: ... Cannot open:
+          # Function not implemented" and the postinst dies. Registered with the F
+          # (fix-binary) flag, the HOST binary is what runs inside the build
+          # container, so a runner that installed qemu long ago and never upgraded
+          # silently breaks every arm64 build that lands on it. Refresh it here;
+          # the qemu-user-static postinst re-registers the handlers on upgrade, so
+          # the kernel picks up the new interpreter. `qemu-user-static` is a real
+          # package on most releases but virtual on newer Ubuntu (arm64 host:
+          # provided by qemu-user-binfmt) — cover both.
+          sudo apt-get update || true
+          if dpkg -s qemu-user-static > /dev/null 2>&1; then
+            sudo apt-get install -y --only-upgrade qemu-user-static binfmt-support || true
+          elif dpkg -s qemu-user-binfmt > /dev/null 2>&1; then
+            sudo apt-get install -y --only-upgrade qemu-user-binfmt binfmt-support || true
+          else
             sudo apt-get install -y --no-install-recommends qemu-user-static binfmt-support \
               || sudo apt-get install -y --no-install-recommends qemu-user-binfmt binfmt-support \
               || true
