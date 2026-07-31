@@ -84,17 +84,28 @@ runs:
         fi
 
         echo "Running: $CMD"
-        RESULT=$(eval $CMD)
-        EXIT_CODE=$?
 
-        echo "### Result" >> $GITHUB_STEP_SUMMARY
-        echo '```json' >> $GITHUB_STEP_SUMMARY
-        echo "${RESULT}" >> $GITHUB_STEP_SUMMARY
-        echo '```' >> $GITHUB_STEP_SUMMARY
+        # Stream the script's output live AND capture it for the summary. Do NOT
+        # use a plain `RESULT=$(eval $CMD)`: under `set -e` that command
+        # substitution aborts the step the instant the script exits non-zero, so
+        # its output (captured into RESULT, not yet printed) is lost and the
+        # failure looks silent. tee shows the output live; PIPESTATUS[0] is the
+        # script's real exit code (not tee's).
+        result_log="$(mktemp)"
+        set +e
+        eval "$CMD" 2>&1 | tee "$result_log"
+        EXIT_CODE=${PIPESTATUS[0]}
+        set -e
 
-        echo "${RESULT}"
+        {
+          echo "### Result (exit ${EXIT_CODE})"
+          echo '```'
+          cat "$result_log"
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+        rm -f "$result_log"
 
-        if [ $EXIT_CODE -ne 0 ]; then
-          echo "::error::Action failed with exit code ${EXIT_CODE}"
-          exit $EXIT_CODE
+        if [ "$EXIT_CODE" -ne 0 ]; then
+          echo "::error::Hetzner ${{ inputs.action }} failed (exit ${EXIT_CODE}) — see the script output above"
+          exit "$EXIT_CODE"
         fi
