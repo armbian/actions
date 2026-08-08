@@ -85,6 +85,7 @@ runs:
             - csot.img.xz: -csot
             - kebab.img.xz: -kebab
             - recovery.img.xz: -recovery
+            - iso: -iso
 
           servers:
           EOF
