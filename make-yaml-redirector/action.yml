@@ -37,22 +37,38 @@ runs:
   using: "composite"
   steps:
 
+    # Every input is passed through env and referenced as a shell variable. Inline
+    # ${{ }} inside `run` is substituted before bash sees the script, so a value
+    # carrying a quote or $( ) - these come from NetBox and from secrets - would
+    # be executed rather than used. Note there is deliberately no `set -e`: the
+    # script relies on `[[ ... ]] && echo` lines that return non-zero when false.
     - shell: bash
+      env:
+        VARIANT: ${{ inputs.variant }}
+        PORT_IN: ${{ inputs.port }}
+        CERTPATH_IN: ${{ inputs.certDataPath }}
+        GEODB: ${{ inputs.geodb }}
+        ASNDB: ${{ inputs.asndb }}
+        DL_MAP: ${{ inputs.dl_map }}
+        RELOAD_KEY: ${{ inputs.reloadKey }}
+        FAILOVERSERVER: ${{ inputs.failoverserver }}
+        NETBOX_TOKEN: ${{ inputs.netbox }}
+        NETBOX_API: ${{ inputs.netboxapi }}
       run: |
 
           rm -rf *.yaml
 
-          FILENAME=${{ inputs.variant }}
-          PORT=${{ inputs.port }}
-          CERTPATH=${{ inputs.certDataPath }}
+          FILENAME="${VARIANT}"
+          PORT="${PORT_IN}"
+          CERTPATH="${CERTPATH_IN}"
           
           cat <<- EOF > dlrouter-${FILENAME}.yaml
           #
           # ${FILENAME}.armbian.com
           #
-          geodb: ${{ inputs.geodb }}
-          asndb: ${{ inputs.asndb }}
-          dl_map: ${{ inputs.dl_map }}
+          geodb: ${GEODB}
+          asndb: ${ASNDB}
+          dl_map: ${DL_MAP}
           EOF
           [[ -n ${CERTPATH} ]] && echo "certDataPath: ${CERTPATH}" >> dlrouter-${FILENAME}.yaml
           [[ -n ${PORT} ]] && echo "bind: ':${PORT}'" >> dlrouter-${FILENAME}.yaml
@@ -60,7 +76,7 @@ runs:
           cat <<- EOF >> dlrouter-${FILENAME}.yaml
           
           # Reload authorization key
-          reloadKey: ${{ inputs.reloadKey }}
+          reloadKey: ${RELOAD_KEY}
           
           # LRU Cache Size (in items)
           cacheSize: 2048
@@ -89,13 +105,14 @@ runs:
           servers:
           EOF
             echo "<pre>" >> $GITHUB_STEP_SUMMARY
-            for server_id in ${{ inputs.failoverserver }}; do
+            # Unquoted on purpose: the pool is a space-separated id list.
+            for server_id in ${FAILOVERSERVER}; do
             unset REGION LATITUDE LONGITUDE PHYSICAL TIME_ZONE UPLOAD
             # read virtual machine            
-            COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" "${{ inputs.netboxapi }}/virtualization/virtual-machines/${server_id}/" | jq)
+            COMMAND=$(curl -sH "Authorization: Token ${NETBOX_TOKEN}" -H "Accept: application/json; indent=4" "${NETBOX_API}/virtualization/virtual-machines/${server_id}/" | jq)
             IFS=',' read -r SITE_ID NAME DL_PATH_DEBS DL_PATH_IMAGES WEIGHT <<<$(echo $COMMAND | jq '.site.id,.name,.custom_fields["download_path_debs"],.custom_fields["download_path_images"],.custom_fields["weight"]' | sed 's/$/,/' | xargs | sed 's/, /,/g')
             # site data
-            COMMAND=$(curl -sH "Authorization: Token ${{ inputs.netbox }}" -H "Accept: application/json; indent=4" "${{ inputs.netboxapi }}/dcim/sites/${SITE_ID}/" | jq)
+            COMMAND=$(curl -sH "Authorization: Token ${NETBOX_TOKEN}" -H "Accept: application/json; indent=4" "${NETBOX_API}/dcim/sites/${SITE_ID}/" | jq)
             IFS=',' read REGION LATITUDE LONGITUDE PHYSICAL TIME_ZONE UPLOAD DOWNLOAD_EXCLUDE <<<$(echo $COMMAND | jq -r '.region.name,.latitude,.longitude,.physical_address,.time_zone,.custom_fields["upload_speed"],.custom_fields["download_exclude"]' | sed 's/$/,/' | xargs | sed 's/, /,/g')
             echo ""  >> dlrouter-${FILENAME}.yaml
             
