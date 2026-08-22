@@ -129,14 +129,41 @@ runs:
         if: ${{ env.RUNNER_USER != 'runner' }}
         shell: bash
         run: |
-          # The workflow's post-build reporting runs `tree output/...` on the
-          # HOST (not inside the build container), so tree must exist on the
-          # runner or the step fails with "tree: command not found".
-          # Best-effort and idempotent - never fail runner setup over this.
-          command -v tree > /dev/null 2>&1 || {
+          # Small host-side CLIs some workflows expect on the runner itself
+          # (not inside the build container):
+          #   tree      - post-build reporting runs `tree output/...`
+          #   mktorrent - image publishing creates .torrent files
+          # Install only the missing ones, then a single apt-get. Best-effort
+          # and idempotent - never fail runner setup over this.
+          missing=()
+          command -v tree      > /dev/null 2>&1 || missing+=(tree)
+          command -v mktorrent > /dev/null 2>&1 || missing+=(mktorrent)
+          if (( ${#missing[@]} )); then
             sudo apt-get update || true
-            sudo apt-get install -y --no-install-recommends tree || true
-          }
+            sudo apt-get install -y --no-install-recommends "${missing[@]}" || true
+          fi
+
+      - name: "Ensure GitHub CLI (gh)"
+        if: ${{ env.RUNNER_USER != 'runner' }}
+        shell: bash
+        run: |
+          # The armbian/build action resolves the version series with `gh api`
+          # (repos/armbian/ci/releases), so gh must exist on the runner. It is
+          # pre-installed on GitHub-hosted runners but not necessarily on a
+          # self-hosted host. Install from GitHub's official apt repo if missing.
+          # Best-effort and idempotent - never fail runner setup over this.
+          if ! command -v gh > /dev/null 2>&1; then
+            sudo mkdir -p -m 755 /etc/apt/keyrings || true
+            if [[ ! -s /etc/apt/keyrings/githubcli-archive-keyring.gpg ]]; then
+              curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+                | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null || true
+              sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg || true
+            fi
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+              | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null || true
+            sudo apt-get update || true
+            sudo apt-get install -y --no-install-recommends gh || true
+          fi
 
       - name: "Ensure docker buildx"
         if: ${{ env.RUNNER_USER != 'runner' }}
