@@ -7,15 +7,15 @@
 
 ## Purpose of This Repository
 
-This repository hosts a collection of reusable GitHub Actions used across the Armbian project — for building images, provisioning and managing Hetzner Cloud runners, preparing and cleaning self-hosted runners, driving Device-Under-Test (DUT) hardware tests, and generating release metadata and download-router configuration.
+This repository hosts a collection of reusable composite GitHub Actions used across the Armbian project — for building images, provisioning and managing Hetzner Cloud runners, preparing and cleaning self-hosted runners, driving Device-Under-Test (DUT) hardware tests, and generating release metadata and download-router configuration.
 
 ## Repository Layout
 
-Each top-level directory is a self-contained composite GitHub Action (`action.yml`).
+Each top-level directory is a self-contained composite GitHub Action defined by an `action.yml`.
 
 | Action | Description |
 | --- | --- |
-| [`build-images/`](build-images/) | Wraps Armbian's Docker-based image build workflow with a small set of inputs (build target, runner size, source/packages repository, board filter). |
+| [`build-images/`](build-images/) | Wraps Armbian's Docker-based image build workflow with inputs for build target, runner size, source/packages repository and board filter. See [`build-images/README.md`](build-images/README.md). |
 | [`collect-data/`](collect-data/) | Runs `iperf3`, `7z b`, kernel/U-Boot detection and `armbianmonitor` collection over SSH on a DUT and exports the results as environment variables. |
 | [`dut-run/`](dut-run/) | Installs kernel/DTB/headers from the selected Armbian APT repository on a DUT, reboots it, invokes `collect-data`, and emits a JSON result fragment. |
 | [`hetzner/`](hetzner/) | Creates or deletes Hetzner Cloud servers preconfigured (via cloud-init) with Docker and self-hosted runners. See [`hetzner/README.md`](hetzner/README.md). |
@@ -24,8 +24,8 @@ Each top-level directory is a self-contained composite GitHub Action (`action.ym
 | [`make-list/`](make-list/) | Builds board/branch/release/desktop target lists by cross-referencing `armbian/build` board configs against already-released assets in `armbian/community`. |
 | [`make-yaml-redirector/`](make-yaml-redirector/) | Renders a `dlrouter-*.yaml` configuration for the [Armbian download router](https://github.com/armbian/armbian-router), pulling server metadata from NetBox. |
 | [`power-on/`](power-on/), [`power-off/`](power-off/) | SSH-triggered power control for DUT hardware, using injected SSH keys. |
-| [`triggers/`](triggers/) | Generic SSH trigger action — installs a key, connects, and runs a remote command. |
-| [`runner-prepare/`](runner-prepare/) | Cleans mounts, workspaces and caches on self-hosted runners before a build. |
+| [`triggers/`](triggers/) | Generic SSH trigger — installs a key, connects, and runs a remote command. |
+| [`runner-prepare/`](runner-prepare/) | Unmounts stale bind-mounts, cleans workspaces and caches on self-hosted runners before a build. |
 | [`runner-clean/`](runner-clean/) | Post-run setup and cleanup: resolves per-runner proxy/cache settings from `github.armbian.com/servers/github-runners.jq`, exports env vars (APT proxy, ccache, ghcr mirror, xz memory cap), tidies caches, and ensures `tree`, `mktorrent` and `gh` are present. |
 | [`team-check/`](team-check/) | Cancels the workflow if the actor is not a member of the given `armbian` GitHub team. |
 
