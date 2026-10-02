@@ -17,7 +17,7 @@ runs:
          username: ${{ github.actor }}
          organization: armbian
          team: "${{ inputs.TEAM }}"
-         GITHUB_TOKEN: ${{ inputs.ORG_MEMBERS }}
+         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
 
     - name: Cancel if not a part of the team
       if: ${{ steps.checkUserMember.outputs.isTeamMember == 'false' }}
