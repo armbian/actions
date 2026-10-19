@@ -31,16 +31,16 @@ Each top-level directory is a self-contained composite GitHub Action defined by 
 
 Other files:
 
-- `index.htm` — a static page deployed via GitHub Pages.
-- `.github/workflows/static.yml` — deploys `index.htm` together with JSON data pulled from the `data` branch of `armbian/armbian.github.io` to GitHub Pages.
-- `LICENSE` — GNU GPL v3.
+- [`index.htm`](index.htm) — a static page deployed via GitHub Pages.
+- [`.github/workflows/static.yml`](.github/workflows/static.yml) — deploys `index.htm` together with JSON data pulled from the `data` branch of `armbian/armbian.github.io` to GitHub Pages.
+- [`LICENSE`](LICENSE) — GNU GPL v3.
 
 ## Built With
 
 - **YAML** — composite action definitions (`action.yml`) and the Pages deployment workflow.
 - **Bash** — the logic inside each action's `run:` steps (APT/SSH orchestration, JSON assembly, cache management, NetBox queries via `curl` + `jq`).
-- **Python 3** — `hetzner/create_servers.py` and `hetzner/deploy_runners.py`, driven via the [`hcloud`](https://pypi.org/project/hcloud/) Python client.
-- **HTML** — `index.htm`, published through GitHub Pages.
+- **Python 3** — [`hetzner/create_servers.py`](hetzner/create_servers.py) and [`hetzner/deploy_runners.py`](hetzner/deploy_runners.py), driven via the [`hcloud`](https://pypi.org/project/hcloud/) Python client.
+- **HTML** — [`index.htm`](index.htm), published through GitHub Pages.
 
 External tools invoked by the actions include `gh`, `jq`, `json` (npm), `ssh`, `curl`, `iperf3`, `7z`, `datamash`, `lftp`, `mktorrent`, `tree`, and `git`.
 
@@ -70,7 +70,7 @@ Reference an individual action from another workflow by path and ref, for exampl
     github-token: ${{ secrets.HETZNER_RUNNER }}
 ```
 
-Per-action inputs and further examples are documented in the individual `action.yml` files and, where present, the action's own `README.md` ([`build-images/`](build-images/README.md), [`hetzner/`](hetzner/README.md), [`make-json/`](make-json/README.md)).
+Per-action inputs and further examples are documented in the individual `action.yml` files and, where present, in the action's own `README.md` ([`build-images/`](build-images/README.md), [`hetzner/`](hetzner/README.md), [`make-json/`](make-json/README.md)).
 
 ## Continuous Integration
 
