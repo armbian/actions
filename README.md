@@ -22,7 +22,7 @@ Each top-level directory is a self-contained composite GitHub Action defined by 
 | [`latest-cache/`](latest-cache/) | Checks out `armbian/cache` and computes the next rootfs cache version number into `ROOTFSCACHE_VERSION`. |
 | [`make-json/`](make-json/) | Generates JSON and Markdown release listings from a GitHub release's assets, filtered via `grep`. See [`make-json/README.md`](make-json/README.md). |
 | [`make-list/`](make-list/) | Builds board/branch/release/desktop target lists by cross-referencing `armbian/build` board configs against already-released assets in `armbian/community`. |
-| [`make-yaml-redirector/`](make-yaml-redirector/) | Renders a `dlrouter-*.yaml` configuration for the [Armbian download router](https://github.com/armbian/armbian-router), pulling server metadata from NetBox. |
+| [`make-yaml-redirector/`](make-yaml-redirector/) | Renders a `dlrouter-*.yaml` configuration for the [Armbian download router](https://github.com/armbian/armbian-router), pulling server and site metadata from NetBox. |
 | [`power-on/`](power-on/), [`power-off/`](power-off/) | SSH-triggered power control for DUT hardware, using injected SSH keys. |
 | [`triggers/`](triggers/) | Generic SSH trigger — installs a key, connects, and runs a remote command. |
 | [`runner-prepare/`](runner-prepare/) | Unmounts stale bind-mounts, cleans workspaces and caches on self-hosted runners before a build. |
