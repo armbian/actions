@@ -34,6 +34,14 @@ inputs:
     description: "Extra commit page templates, one '<host> <URL>' per line, with {repo} (path without .git), {path} and {sha}"
     required: false
     default: ""
+  allowed-hosts:
+    description: "More git servers lines may name without approval, space-separated, or '*' for any; GitHub and the commit-links hosts are always allowed"
+    required: false
+    default: ""
+  allow-hosts-label:
+    description: "Label by which a maintainer approves the servers a pull request asks for"
+    required: false
+    default: "depends-on: allow hosts"
   notify-label:
     description: "Label that marks pull requests with Notify-when: lines not announced yet"
     required: false
@@ -78,6 +86,8 @@ runs:
         DEPENDS_ON_OVERRIDE_LABEL: ${{ inputs.override-label }}
         DEPENDS_ON_OVERRIDE_ROLE: ${{ inputs.override-role }}
         DEPENDS_ON_COMMIT_LINKS: ${{ inputs.commit-links }}
+        DEPENDS_ON_ALLOWED_HOSTS: ${{ inputs.allowed-hosts }}
+        DEPENDS_ON_ALLOW_HOSTS_LABEL: ${{ inputs.allow-hosts-label }}
         DEPENDS_ON_NOTIFY_LABEL: ${{ inputs.notify-label }}
         DEPENDS_ON_NOTIFY_TTL_DAYS: ${{ inputs.notify-ttl-days }}
         DEPENDS_ON_GIT_EVERY_HOURS: ${{ inputs.git-every-hours }}

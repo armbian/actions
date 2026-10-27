@@ -70,6 +70,23 @@ scheduled runs fetch from other servers every `git-every-hours`. Each fetch
 has `git-fetch-timeout` seconds and a run at most `git-max-fetches` fetches;
 a condition cut by these limits stays pending.
 
+A line can name any server, and the runner is the one that contacts it, on
+behalf of whoever wrote the pull request. So without asking the action only
+contacts GitHub, the hosts with a commit link template (built in or from
+`commit-links`) and the hosts in `allowed-hosts` (`*` allows any). For
+another host it keeps the line pending and comments once, naming each
+operation, URL and ref it would use and the line that asks for it:
+
+```
+This pull request asks to contact servers outside allowed-hosts:
+- git ls-remote and git fetch (commits only) of https://git.example.org/foo.git, ref main after tag v1.0 for the line `Depends-on: git https://git.example.org/foo.git contains "fix" in main after v1.0`
+A maintainer can allow this by adding the label "depends-on: allow hosts".
+```
+
+The label counts when its author has at least `override-role` and added it
+after the latest such request; it covers the hosts of that request. A line
+naming a further host removes the label and asks again.
+
 Some servers make this slow. git.kernel.org does not support partial fetch,
 and a stable branch from there did not fit in five minutes; use the GitHub
 mirrors of the kernel trees instead.
@@ -148,6 +165,8 @@ access.
 | `override-label` | `depends-on: override` | label that releases the hold |
 | `override-role` | `maintain` | lowest role whose override label counts |
 | `commit-links` | | extra commit page templates |
+| `allowed-hosts` | | more servers allowed without asking, or `*` |
+| `allow-hosts-label` | `depends-on: allow hosts` | label that approves the servers asked for |
 | `notify-label` | `notify-pending` | label of pull requests with lines not announced |
 | `notify-ttl-days` | `365` | days after the merge to keep watching |
 | `git-every-hours` | `6` | how often scheduled runs fetch from other servers |

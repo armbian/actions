@@ -56,6 +56,46 @@ done <<- LINKS
 	${DEPENDS_ON_COMMIT_LINKS:-}
 LINKS
 
+# Servers a line may make the runner contact without asking: GitHub, the
+# hosts above, and DEPENDS_ON_ALLOWED_HOSTS ("*" allows any). For another
+# host a maintainer has to approve with allow_label first.
+allow_label="${DEPENDS_ON_ALLOW_HOSTS_LABEL:-depends-on: allow hosts}"
+declare -A allowed_hosts=([github.com]=1)
+allow_all=no
+for one_host in "${!commit_links[@]}"; do
+	allowed_hosts[${one_host,,}]=1
+done
+read -r -a one_list <<< "${DEPENDS_ON_ALLOWED_HOSTS:-}"
+for one_host in "${one_list[@]}"; do
+	if [[ "${one_host}" == "*" ]]; then
+		allow_all=yes
+	else
+		allowed_hosts[${one_host,,}]=1
+	fi
+done
+
+# Per pull request: hosts outside allowed_hosts its lines name, those a
+# maintainer approved, and the operations still waiting for approval.
+declare -A approved_hosts=() unlisted_hosts=()
+declare -a host_requests=()
+current_line=""
+
+# Is the host of URL $1 allowed? If not, note operation $2 on it for the
+# request comment. Sets git_host.
+function host_allowed() {
+	git_host="${1#https://}"
+	git_host="${git_host%%[/:]*}"
+	git_host="${git_host,,}"
+	if [[ "${allow_all}" == "yes" || -n "${allowed_hosts[${git_host}]:-}" ]]; then
+		return 0
+	fi
+	unlisted_hosts[${git_host}]=1
+	[[ -n "${approved_hosts[${git_host}]:-}" ]] && return 0
+	declare line="${current_line//\`/}"
+	host_requests+=("${2} for the line \`${line:0:200}\`")
+	return 1
+}
+
 # The body is anyone's text and the token can write: words from it reach git
 # and the API only in these shapes, never as an option.
 ref_pattern='^[A-Za-z0-9_][A-Za-z0-9_./-]*$'
@@ -335,6 +375,12 @@ function check_git() {
 		dep_state=bad dep_reason="git: only https:// URLs and plain ref names"
 		return
 	fi
+	declare operation="git ls-remote of ${url}, ref ${ref}"
+	[[ -n "${container}" ]] && operation="git ls-remote and git fetch (commits only) of ${url}, ref ${container}"
+	if ! host_allowed "${url}" "${operation}"; then
+		dep_state=wait dep_reason="${git_host}: waiting for approval to contact"
+		return
+	fi
 	declare sha
 	if [[ "${ref}" =~ ^[0-9a-f]{40}$ ]]; then
 		sha="${ref}"
@@ -403,6 +449,10 @@ function check_condition() {
 			dep_state=bad dep_reason="git: only https:// URLs and plain ref names"
 			return
 		fi
+		if ! host_allowed "${url}" "git ls-remote and git fetch (commits only) of ${url}, ref ${container} after tag ${after}"; then
+			dep_state=wait dep_reason="${git_host}: waiting for approval to contact"
+			return
+		fi
 		check_git_contains "${url}" "${text}" "${container}" "${after}"
 		return
 	fi
@@ -415,10 +465,25 @@ function check_condition() {
 	fi
 }
 
-# Print the login that last added the override label, if any.
-function override_actor() {
+# Print the login that last added label $2 to pull request $1, if it did so
+# after time $3 (ISO 8601, optional).
+function label_actor() {
 	gh api --paginate "repos/${repo}/issues/${1}/events?per_page=100" 2> /dev/null |
-		jq -rs --arg l "${override_label}" '[.[][] | select(.event == "labeled" and .label.name == $l)] | last | .actor.login // empty'
+		jq -rs --arg l "${2}" --arg after "${3:-}" \
+			'[.[][] | select(.event == "labeled" and .label.name == $l)] | last
+			| select(. != null and .created_at > $after) | .actor.login // empty'
+}
+
+# Print "<login> <role>" if label $2 on pull request $1 was added, after
+# time $3 if given, by someone with at least override_role, else nothing.
+function trusted_label_actor() {
+	declare actor role
+	actor="$(label_actor "${1}" "${2}" "${3:-}")"
+	[[ -n "${actor}" ]] || return 0
+	role="$(gh api "repos/${repo}/collaborators/${actor}/permission" --jq '.role_name' 2> /dev/null || true)"
+	if [[ "$(role_rank "${role}")" -ge "$(role_rank "${override_role}")" ]]; then
+		echo "${actor} ${role}"
+	fi
 }
 
 # Print one JSON object with the decision for pull request $1. Needs read
@@ -432,7 +497,24 @@ function evaluate_pull_request() {
 	labels="$(jq -r '.labels[].name' <<< "${pr}")"
 	pr_state="$(jq -r '.state' <<< "${pr}")"
 	merged_at="$(jq -r '.merged_at // ""' <<< "${pr}")"
-	comments="$(gh api --paginate "repos/${repo}/issues/${number}/comments?per_page=100" --jq '.[].body' 2> /dev/null || true)"
+	declare comments_json
+	comments_json="$(gh api --paginate "repos/${repo}/issues/${number}/comments?per_page=100" 2> /dev/null | jq -s 'add // []' || echo '[]')"
+	comments="$(jq -r '.[].body' <<< "${comments_json}")"
+
+	# Hosts approved for this pull request: those of our last request comment,
+	# if a trusted maintainer added allow_label after it. Anyone can write the
+	# marker, so only a bot's comment counts.
+	approved_hosts=() unlisted_hosts=() host_requests=()
+	declare request_hosts request_time one_host
+	read -r request_time request_hosts < <(jq -r '[.[] | select(.user.type == "Bot")
+		| (.body | capture("(?m)^<!-- depends-on: hosts (?<h>[a-z0-9. -]+) -->$").h) as $h
+		| "\(.created_at) \($h)"] | last // ""' <<< "${comments_json}") || true
+	if [[ -n "${request_time}" ]] && grep -qxF "${allow_label}" <<< "${labels}" &&
+		[[ -n "$(trusted_label_actor "${number}" "${allow_label}" "${request_time}")" ]]; then
+		for one_host in ${request_hosts}; do
+			approved_hosts[${one_host}]=1
+		done
+	fi
 
 	declare -a deps notifies new_comments=()
 	mapfile -t deps < <(parse_lines "depends-on" <<< "${body}")
@@ -449,6 +531,7 @@ function evaluate_pull_request() {
 			deps=() notifies=()
 		fi
 		for one in "${deps[@]}"; do
+			current_line="Depends-on: ${one}"
 			check_condition "${one}"
 			echo "#${number} Depends-on: ${dep_state}: ${dep_reason}" >&2
 			case "${dep_state}" in
@@ -479,13 +562,12 @@ function evaluate_pull_request() {
 			fi
 		fi
 		if [[ -n "${state}" && "${state}" != "success" ]] && grep -qxF "${override_label}" <<< "${labels}"; then
-			declare actor role
-			actor="$(override_actor "${number}")"
-			role="$(gh api "repos/${repo}/collaborators/${actor:-none}/permission" --jq '.role_name' 2> /dev/null || true)"
-			if [[ -n "${actor}" && "$(role_rank "${role}")" -ge "$(role_rank "${override_role}")" ]]; then
-				state=success description="overridden by @${actor} (${role})"
+			declare trusted
+			trusted="$(trusted_label_actor "${number}" "${override_label}")"
+			if [[ -n "${trusted}" ]]; then
+				state=success description="overridden by @${trusted% *} (${trusted#* })"
 			else
-				description="override label ignored: @${actor:-unknown} is ${role:-not a collaborator}; ${description}"
+				description="override label ignored: not added by a ${override_role} or above; ${description}"
 			fi
 		fi
 	fi
@@ -505,6 +587,7 @@ function evaluate_pull_request() {
 			new_comments+=("$(printf 'Notify-when gave up after %s days:\n- %s\n\n<!-- notify-when: %s -->' "${notify_ttl_days}" "${hash}" "${hash}")")
 			continue
 		fi
+		current_line="Notify-when: ${one}"
 		check_condition "${one}"
 		echo "#${number} Notify-when: ${dep_state}: ${dep_reason}" >&2
 		case "${dep_state}" in
@@ -518,21 +601,38 @@ function evaluate_pull_request() {
 		grep -qxF "${notify_label}" <<< "${labels}" && label=remove
 	fi
 
+	# Ask a maintainer about hosts outside allowed-hosts, once per set of hosts.
+	# An allow_label given for an older set no longer covers a new host.
+	declare allow_unlabel=no
+	if ((${#host_requests[@]} > 0)); then
+		declare hosts_marker
+		hosts_marker="<!-- depends-on: hosts $(printf '%s\n' "${!unlisted_hosts[@]}" | LC_ALL=C sort | paste -sd' ') -->"
+		if ! grep -qF "${hosts_marker}" <<< "${comments}"; then
+			new_comments+=("$(printf 'This pull request asks to contact servers outside allowed-hosts:\n%s\nA maintainer can allow this by adding the label "%s".\n\n%s' \
+				"$(printf -- '- %s\n' "${host_requests[@]}")" "${allow_label}" "${hosts_marker}")")
+		fi
+		if grep -qxF "${allow_label}" <<< "${labels}"; then
+			allow_unlabel=yes
+		fi
+	fi
+
 	echo "#${number} ${sha:0:12} ${state:-unchanged}: ${description} notify-pending=${pending} label=${label:-none}" >&2
 	echo "| #${number} | ${state:-unchanged} | ${description//|/\\|} | ${pending} |" >> "${summary}"
 	printf '%s\0' "${new_comments[@]}" | jq -Rsc --argjson number "${number}" --arg sha "${sha}" \
 		--arg state "${state}" --arg description "${description:0:140}" --arg label "${label}" \
+		--arg allow_unlabel "${allow_unlabel}" \
 		'{number: $number, sha: $sha, state: $state, description: $description, label: $label,
+		allow_unlabel: ($allow_unlabel == "yes"),
 		comments: (split("\u0000") | map(select(length > 0)))}'
 }
 
 # Is $1 one of the comments evaluate_pull_request writes: a fixed heading,
-# "- " items, a marker of 12 hex digits?
+# "- " items, a fixed marker? The host request also has its closing line.
 function is_known_comment() {
 	[[ ${#1} -le 4000 ]] || return 1
 	declare -a lines
 	mapfile -t lines <<< "${1}"
-	declare last=$((${#lines[@]} - 1)) i
+	declare last=$((${#lines[@]} - 1)) i closing=""
 	case "${lines[0]}" in
 		"All dependencies are met:")
 			[[ "${lines[last]}" =~ ^\<!--\ depends-on:\ met\ [0-9a-f]{12}\ --\>$ ]] || return 1
@@ -540,12 +640,16 @@ function is_known_comment() {
 		"Notify-when met:" | "Notify-when gave up after "[0-9]*" days:")
 			[[ "${lines[last]}" =~ ^\<!--\ notify-when:\ [0-9a-f]{12}\ --\>$ ]] || return 1
 			;;
+		"This pull request asks to contact servers outside allowed-hosts:")
+			[[ "${lines[last]}" =~ ^\<!--\ depends-on:\ hosts\ [a-z0-9.\ -]+\ --\>$ ]] || return 1
+			closing="A maintainer can allow this by adding the label \"${allow_label}\"."
+			;;
 		*)
 			return 1
 			;;
 	esac
 	for ((i = 1; i < last; i++)); do
-		[[ -z "${lines[i]}" || "${lines[i]}" == "- "* ]] || return 1
+		[[ -z "${lines[i]}" || "${lines[i]}" == "- "* || (-n "${closing}" && "${lines[i]}" == "${closing}") ]] || return 1
 	done
 }
 
@@ -553,7 +657,7 @@ function is_known_comment() {
 # request body. The decisions come from the evaluate step and are trusted as
 # far as that step is: a forged one can at most set the status of the head
 # commit of an open pull request it names, post a comment of a fixed shape,
-# and add or remove the notify label.
+# add or remove the notify label, and remove the allow label.
 function apply_decisions() {
 	declare item number sha state description label head one
 	while IFS= read -r item; do
@@ -586,6 +690,9 @@ function apply_decisions() {
 			add) gh api -X POST "repos/${repo}/issues/${number}/labels" -f "labels[]=${notify_label}" > /dev/null ;;
 			remove) gh api -X DELETE "repos/${repo}/issues/${number}/labels/$(jq -rn --arg l "${notify_label}" '$l|@uri')" > /dev/null 2>&1 || true ;;
 		esac
+		if [[ "$(jq -r '.allow_unlabel' <<< "${item}")" == "true" ]]; then
+			gh api -X DELETE "repos/${repo}/issues/${number}/labels/$(jq -rn --arg l "${allow_label}" '$l|@uri')" > /dev/null 2>&1 || true
+		fi
 		echo "#${number} ${sha:0:12} ${state:-unchanged} label=${label:-none}"
 	done < <(jq -c '.[]' <<< "${1}")
 }
