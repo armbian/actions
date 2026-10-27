@@ -184,4 +184,7 @@ decisions of `evaluate`: it only checks that a status goes to the head commit
 of an open pull request and that a comment has one of the fixed shapes. Never
 feed it a `result` from an untrusted run.
 
+git follows a redirect from an allowed host to any other server, as moved
+repositories need; put in `allowed-hosts` only servers you trust with that.
+
 The default token reads only its own repository and public ones.

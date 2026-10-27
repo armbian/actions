@@ -503,15 +503,20 @@ function evaluate_pull_request() {
 
 	# Hosts approved for this pull request: those of our last request comment,
 	# if a trusted maintainer added allow_label after it. Anyone can write the
-	# marker, so only a bot's comment counts.
+	# marker, so only a bot's comment of the request shape counts.
 	approved_hosts=() unlisted_hosts=() host_requests=()
+	declare -A requested_hosts=()
 	declare request_hosts request_time one_host
 	read -r request_time request_hosts < <(jq -r '[.[] | select(.user.type == "Bot")
-		| (.body | capture("(?m)^<!-- depends-on: hosts (?<h>[a-z0-9. -]+) -->$").h) as $h
+		| select(.body | startswith("This pull request asks to contact servers outside allowed-hosts:\n"))
+		| (.body | capture("\n<!-- depends-on: hosts (?<h>[a-z0-9. -]+) -->\\z").h) as $h
 		| "\(.created_at) \($h)"] | last // ""' <<< "${comments_json}") || true
+	for one_host in ${request_hosts}; do
+		requested_hosts[${one_host}]=1
+	done
 	if [[ -n "${request_time}" ]] && grep -qxF "${allow_label}" <<< "${labels}" &&
 		[[ -n "$(trusted_label_actor "${number}" "${allow_label}" "${request_time}")" ]]; then
-		for one_host in ${request_hosts}; do
+		for one_host in "${!requested_hosts[@]}"; do
 			approved_hosts[${one_host}]=1
 		done
 	fi
@@ -601,13 +606,16 @@ function evaluate_pull_request() {
 		grep -qxF "${notify_label}" <<< "${labels}" && label=remove
 	fi
 
-	# Ask a maintainer about hosts outside allowed-hosts, once per set of hosts.
-	# An allow_label given for an older set no longer covers a new host.
+	# Ask a maintainer about hosts outside allowed-hosts unless our last request
+	# already names them all: approval covers that request's hosts only.
 	declare allow_unlabel=no
 	if ((${#host_requests[@]} > 0)); then
-		declare hosts_marker
+		declare hosts_marker ask=no
 		hosts_marker="<!-- depends-on: hosts $(printf '%s\n' "${!unlisted_hosts[@]}" | LC_ALL=C sort | paste -sd' ') -->"
-		if ! grep -qF "${hosts_marker}" <<< "${comments}"; then
+		for one_host in "${!unlisted_hosts[@]}"; do
+			[[ -n "${requested_hosts[${one_host}]:-}" ]] || ask=yes
+		done
+		if [[ "${ask}" == "yes" ]]; then
 			new_comments+=("$(printf 'This pull request asks to contact servers outside allowed-hosts:\n%s\nA maintainer can allow this by adding the label "%s".\n\n%s' \
 				"$(printf -- '- %s\n' "${host_requests[@]}")" "${allow_label}" "${hosts_marker}")")
 		fi
