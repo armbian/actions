@@ -37,21 +37,23 @@ the subject. For example, to learn when a patch reaches mainline:
 Notify-when: git https://github.com/torvalds/linux.git contains "20261005-kexec-v2-1-0123456789ab@example.org" in master after v7.3
 ```
 
-Only `https://` URLs and plain ref names are accepted.
+Only `https://` URLs and plain ref names are accepted; `<text>` is up to 200
+characters without `"`.
 
 ## Status and comments
 
 For `Depends-on:` the status is `success` when every line is met, `pending`
 while one is not met yet, and `failure` when one cannot be met (closed
-without merge), cannot be read, or is not understood. When all lines are
-met, the action comments once for that set of lines.
+without merge), cannot be read, or is not understood, or when the pull
+request has more than `max-lines` lines. When all lines are met, the action
+comments once for that set of lines.
 
 For `Notify-when:` the action comments once per line when it is met, with a
-link to the commit when a `git` condition found one. While some line is not announced, the pull
-request carries the `notify-pending` label; scheduled runs look only at open
-pull requests and at those with the label, not at every merged one. A pull
-request closed without merge stops being watched, and a merged one gives up
-after `notify-ttl-days` with a last comment.
+link to the commit when a `git` condition found one. While some line is not
+announced, the pull request carries the `notify-pending` label; scheduled
+runs look only at open pull requests and at those with the label, not at
+every merged one. A pull request closed without merge stops being watched,
+and a merged one gives up after `notify-ttl-days` with a last comment.
 
 Commit links are known for github.com, gitlab.com, git.u-boot-project.org
 (and source.denx.de), gitlab.freedesktop.org, salsa.debian.org, codeberg.org,
@@ -60,21 +62,27 @@ git.sr.ht, git.kernel.org and git.openwrt.org. Add others with
 (the path without `.git`), `{path}` and `{sha}`. Without a template the
 comment gives the full commit and the repository.
 
-## Fetching from other git servers
+## Git servers
 
-Conditions on GitHub are answered by its API. Other servers are fetched:
-commits only, without files, where the server supports it, and only the
-commits after `<tag>` where the server can cut there. On an event (an edited
-description, a push, a label) a pull request is checked in full at once;
-scheduled runs fetch from other servers every `git-every-hours`. Each fetch
-has `git-fetch-timeout` seconds and a run at most `git-max-fetches` fetches;
-a condition cut by these limits stays pending.
+Pull request conditions and `git <github.com url> <commit> in <ref>` are
+answered by the GitHub API. Whether a ref exists is asked with
+`git ls-remote` on every run. The other `in` and `contains` conditions fetch
+commits: without files where the server supports it, and only those after
+`<tag>` where the server can cut there. On an event (an edited description,
+a push, a label) a pull request is checked in full at once; scheduled runs
+fetch every `git-every-hours` and otherwise leave the status as it is. Each
+fetch has `git-fetch-timeout` seconds and a run at most `git-max-fetches`
+fetches; a condition cut by these limits stays pending.
+
+Some servers make this slow. git.kernel.org does not support partial fetch,
+and a stable branch from there did not fit in five minutes; use the GitHub
+mirrors of the kernel trees instead.
 
 A line can name any server, and the runner is the one that contacts it, on
 behalf of whoever wrote the pull request. So without asking the action only
 contacts GitHub, the hosts with a commit link template (built in or from
-`commit-links`) and the hosts in `allowed-hosts` (`*` allows any). For
-another host it keeps the line pending and comments once, naming each
+`commit-links`) and the hosts in `allowed-hosts` (`*` allows any). A line
+naming another host stays pending, and the action comments, naming each
 operation, URL and ref it would use and the line that asks for it:
 
 ```
@@ -85,11 +93,9 @@ A maintainer can allow this by adding the label "depends-on: allow hosts".
 
 The label counts when its author has at least `override-role` and added it
 after the latest such request; it covers the hosts of that request. A line
-naming a further host removes the label and asks again.
-
-Some servers make this slow. git.kernel.org does not support partial fetch,
-and a stable branch from there did not fit in five minutes; use the GitHub
-mirrors of the kernel trees instead.
+naming a host that request did not brings a new request, and the action
+removes the label. Only requests written by a bot count, so the `apply` job
+must post with `github.token` or a GitHub App token, not a personal one.
 
 ## Releasing the hold
 
@@ -160,7 +166,7 @@ access.
 | `mode` | `all` | `evaluate` (read-only, outputs `result`), `apply` (writes from `result`), or `all` in one step |
 | `result` | | decisions of an `evaluate` step, for `apply` |
 | `pull-requests` | | numbers or `all`; empty: the event's pull request, or all |
-| `token` | `github.token` | must read every repository named in a line |
+| `token` | `github.token` | must read every repository named in a line; for `apply`, a bot's token |
 | `context` | `depends-on` | name of the commit status |
 | `override-label` | `depends-on: override` | label that releases the hold |
 | `override-role` | `maintain` | lowest role whose override label counts |
@@ -169,7 +175,7 @@ access.
 | `allow-hosts-label` | `depends-on: allow hosts` | label that approves the servers asked for |
 | `notify-label` | `notify-pending` | label of pull requests with lines not announced |
 | `notify-ttl-days` | `365` | days after the merge to keep watching |
-| `git-every-hours` | `6` | how often scheduled runs fetch from other servers |
+| `git-every-hours` | `6` | how often scheduled runs fetch commits |
 | `git-max-fetches` | `10` | fetches per run |
 | `git-fetch-timeout` | `300` | seconds per fetch |
 | `max-lines` | `20` | most lines per pull request |
@@ -179,10 +185,10 @@ access.
 The `evaluate` job reads the descriptions and contacts the dependencies with a
 read-only token; git speaks https only and takes words from a description
 only as an `https://` URL or a plain ref name. The `apply` job writes statuses,
-comments and the notify label and reads no description, but it trusts the
-decisions of `evaluate`: it only checks that a status goes to the head commit
-of an open pull request and that a comment has one of the fixed shapes. Never
-feed it a `result` from an untrusted run.
+comments and the notify label, removes the allow label and reads no
+description, but it trusts the decisions of `evaluate`: it only checks that a
+status goes to the head commit of an open pull request and that a comment
+has one of the fixed shapes. Never feed it a `result` from an untrusted run.
 
 git follows a redirect from an allowed host to any other server, as moved
 repositories need; put in `allowed-hosts` only servers you trust with that.
