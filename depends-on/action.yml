@@ -1,6 +1,6 @@
 name: "Pull request dependencies"
 author: "Igor Velkov"
-description: "Hold a pull request until the pull requests or git refs named on its Depends-on: lines are merged"
+description: "Hold a pull request until what its Depends-on: lines name is merged, and comment when its Notify-when: lines are met"
 inputs:
   mode:
     description: "evaluate: read-only, outputs the decisions; apply: sets statuses and comments from 'result'; all: both in one step"
@@ -15,7 +15,7 @@ inputs:
     required: false
     default: ""
   token:
-    description: "evaluate: reads pull requests and the repositories named in Depends-on: lines; apply: sets statuses and comments"
+    description: "evaluate: reads pull requests and the repositories their lines name; apply: sets statuses, comments and labels, as a bot"
     required: false
     default: ${{ github.token }}
   context:
