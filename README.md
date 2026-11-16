@@ -7,7 +7,7 @@
 
 ## Purpose of This Repository
 
-This repository hosts a collection of reusable composite GitHub Actions used across the Armbian project — for building images, provisioning and managing Hetzner Cloud runners, preparing and cleaning self-hosted runners, driving Device-Under-Test (DUT) hardware tests, and generating release metadata and download-router configuration.
+This repository hosts a collection of reusable composite GitHub Actions used across the Armbian project — for building images, provisioning and managing Hetzner Cloud runners, preparing and cleaning self-hosted runners, driving Device-Under-Test (DUT) hardware tests, gating pull requests on cross-repository dependencies, and generating release metadata and download-router configuration.
 
 ## Repository Layout
 
@@ -17,6 +17,7 @@ Each top-level directory is a self-contained composite GitHub Action defined by 
 | --- | --- |
 | [`build-images/`](build-images/) | Wraps Armbian's Docker-based image build workflow with inputs for build target, runner size, source/packages repository and board filter. See [`build-images/README.md`](build-images/README.md). |
 | [`collect-data/`](collect-data/) | Runs `iperf3`, `7z b`, kernel/U-Boot detection and `armbianmonitor` collection over SSH on a DUT and exports the results as environment variables. |
+| [`depends-on/`](depends-on/) | Holds a pull request until `Depends-on:` lines in its description are merged, and comments when `Notify-when:` lines are met. See [`depends-on/README.md`](depends-on/README.md). |
 | [`dut-run/`](dut-run/) | Installs kernel/DTB/headers from the selected Armbian APT repository on a DUT, reboots it, invokes `collect-data`, and emits a JSON result fragment. |
 | [`hetzner/`](hetzner/) | Creates or deletes Hetzner Cloud servers preconfigured (via cloud-init) with Docker and self-hosted runners. See [`hetzner/README.md`](hetzner/README.md). |
 | [`latest-cache/`](latest-cache/) | Checks out `armbian/cache` and computes the next rootfs cache version number into `ROOTFSCACHE_VERSION`. |
@@ -38,7 +39,7 @@ Other files:
 ## Built With
 
 - **YAML** — composite action definitions (`action.yml`) and the Pages deployment workflow.
-- **Bash** — the logic inside each action's `run:` steps (APT/SSH orchestration, JSON assembly, cache management, NetBox queries via `curl` + `jq`).
+- **Bash** — the logic inside each action's `run:` steps (APT/SSH orchestration, JSON assembly, cache management, NetBox queries via `curl` + `jq`), plus [`depends-on/depends-on.sh`](depends-on/depends-on.sh).
 - **Python 3** — [`hetzner/create_servers.py`](hetzner/create_servers.py) and [`hetzner/deploy_runners.py`](hetzner/deploy_runners.py), driven via the [`hcloud`](https://pypi.org/project/hcloud/) Python client.
 - **HTML** — [`index.htm`](index.htm), published through GitHub Pages.
 
@@ -70,7 +71,7 @@ Reference an individual action from another workflow by path and ref, for exampl
     github-token: ${{ secrets.HETZNER_RUNNER }}
 ```
 
-Per-action inputs and further examples are documented in the individual `action.yml` files and, where present, in the action's own `README.md` ([`build-images/`](build-images/README.md), [`hetzner/`](hetzner/README.md), [`make-json/`](make-json/README.md)).
+Per-action inputs and further examples are documented in the individual `action.yml` files and, where present, in the action's own `README.md` ([`build-images/`](build-images/README.md), [`depends-on/`](depends-on/README.md), [`hetzner/`](hetzner/README.md), [`make-json/`](make-json/README.md)).
 
 ## Continuous Integration
 
