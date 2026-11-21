@@ -16,10 +16,11 @@ notify_label="${DEPENDS_ON_NOTIFY_LABEL:-notify-pending}"
 notify_ttl_days="${DEPENDS_ON_NOTIFY_TTL_DAYS:-365}"
 git_every_hours="${DEPENDS_ON_GIT_EVERY_HOURS:-6}"
 git_max_fetches="${DEPENDS_ON_GIT_MAX_FETCHES:-10}"
+armbian_max_fetches="${DEPENDS_ON_ARMBIAN_MAX_FETCHES:-20}"
 git_fetch_timeout="${DEPENDS_ON_GIT_FETCH_TIMEOUT:-300}"
 max_lines="${DEPENDS_ON_MAX_LINES:-20}"
 # These go into shell arithmetic, which would run anything but a number.
-for one_setting in notify_ttl_days git_every_hours git_max_fetches git_fetch_timeout max_lines; do
+for one_setting in notify_ttl_days git_every_hours git_max_fetches armbian_max_fetches git_fetch_timeout max_lines; do
 	if [[ ! "${!one_setting}" =~ ^[0-9]+$ ]]; then
 		echo "${one_setting} must be a number, got '${!one_setting}'" >&2
 		exit 1
@@ -111,9 +112,25 @@ if [[ "${GITHUB_EVENT_NAME:-}" == "schedule" ]]; then
 	fi
 fi
 
+# What Armbian builds, per board and branch, with the kernel source of each.
+armbian_map_url="${DEPENDS_ON_ARMBIAN_MAP_URL:-https://raw.githubusercontent.com/armbian/armbian.github.io/data/data/image-info.json}"
+
+# Fetch these repositories from a mirror: some servers cannot leave out
+# trees or cut history. "<url> <mirror url>" per line in DEPENDS_ON_GIT_MIRRORS.
+declare -A git_mirrors=()
+while read -r one_host one_template; do
+	[[ -n "${one_host}" && -n "${one_template}" ]] && git_mirrors[${one_host%.git}]="${one_template}"
+done <<- MIRRORS
+	https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git https://github.com/gregkh/linux.git
+	https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git https://github.com/torvalds/linux.git
+	${DEPENDS_ON_GIT_MIRRORS:-}
+MIRRORS
+
 # One bare repository per URL, shared by all conditions of a run.
 declare -A git_dirs=() git_fetched=()
-git_fetches=0
+# armbian:kernel lines fetch from a budget of their own, so that they cannot
+# starve the other lines of a run.
+git_fetches=0 armbian_fetches=0 fetch_pool=lines
 work_dir="$(mktemp -d)"
 trap 'rm -rf "${work_dir}"' EXIT
 
@@ -268,10 +285,13 @@ function git_resolve() {
 # <url> <what, for the log> <git fetch arguments>...
 function git_fetch_once() {
 	declare url="${1}" what="${2}" && shift 2
-	if ((git_fetches >= git_max_fetches)); then
-		return 2
+	if [[ "${fetch_pool}" == "armbian" ]]; then
+		((armbian_fetches < armbian_max_fetches)) || return 2
+		armbian_fetches=$((armbian_fetches + 1))
+	else
+		((git_fetches < git_max_fetches)) || return 2
+		git_fetches=$((git_fetches + 1))
 	fi
-	git_fetches=$((git_fetches + 1))
 	declare start=${SECONDS} rc=0
 	timeout --kill-after=10 "${git_fetch_timeout}" git "${safe_git_options[@]}" -C "${git_dir}" fetch -q --filter=tree:0 "$@" 2> /dev/null || rc=$?
 	echo "| ${url} | ${what} | $((SECONDS - start)) s | $( ((rc == 0)) && echo ok || echo "failed (${rc})") |" | tee -a "${work_dir}/fetches" >&2
@@ -284,10 +304,12 @@ function git_fetch_once() {
 # Fetch the commits of ref $2 of $1, without trees or files where the server
 # can leave them out; with tag $3, only those after the tag where the server
 # can cut there, else all of them and the tag. Sets git_dir and git_range,
-# the local commits to search. Returns as git_fetch_once.
+# the local commits to search. More refspecs from $4 on are fetched too.
+# Returns as git_fetch_once.
 function git_fetch() {
 	declare url="${1}" ref="${2}" after="${3:-}"
-	declare key="${url} ${ref} ${after}" mine rc=0
+	declare -a more=("${@:4}")
+	declare key="${url} ${ref} ${after} ${more[*]}" mine rc=0
 	if [[ -z "${git_dirs[${url}]:-}" ]]; then
 		git_dirs[${url}]="${work_dir}/${#git_dirs[@]}"
 		git init -q --bare "${git_dirs[${url}]}"
@@ -300,15 +322,15 @@ function git_fetch() {
 	fi
 	git_range="${mine}"
 	if [[ -n "${after}" ]]; then
-		git_fetch_once "${url}" "${ref} after ${after}" --shallow-exclude="${after}" "${url}" "+${ref}:${mine}" || rc=$?
+		git_fetch_once "${url}" "${ref} after ${after}" --shallow-exclude="${after}" "${url}" "+${ref}:${mine}" "${more[@]}" || rc=$?
 		if ((rc == 1)); then
 			# If the cut fails, take the whole history and the tag.
 			rc=0
-			git_fetch_once "${url}" "${ref} and ${after}" "${url}" "+${ref}:${mine}" "+refs/tags/${after}:${mine}-after" || rc=$?
+			git_fetch_once "${url}" "${ref} and ${after}" "${url}" "+${ref}:${mine}" "+refs/tags/${after}:${mine}-after" "${more[@]}" || rc=$?
 			git_range="${mine}-after..${mine}"
 		fi
 	else
-		git_fetch_once "${url}" "${ref}" "${url}" "+${ref}:${mine}" || rc=$?
+		git_fetch_once "${url}" "${ref}" "${url}" "+${ref}:${mine}" "${more[@]}" || rc=$?
 	fi
 	git_fetched[${key}]="${rc} ${git_range}"
 	return "${rc}"
@@ -441,8 +463,159 @@ function check_git() {
 	fi
 }
 
+# Print the kernels Armbian builds, tab-separated: source, branch:/tag:/commit:,
+# major.minor, families by branch; downloads the map once per run.
+armbian_kernels_list="" armbian_kernels_tried=no
+function armbian_kernels() {
+	if [[ "${armbian_kernels_tried}" == "no" ]]; then
+		armbian_kernels_tried=yes
+		armbian_kernels_list="$(curl -fsSL --retry 2 --max-time 120 "${armbian_map_url}" |
+			jq -r '.[] | [.out.KERNELSOURCE, .out.KERNELBRANCH, .out.KERNEL_MAJOR_MINOR, .in.vars.BRANCH, .out.LINUXFAMILY]
+				| select(all(.[]; type == "string" and length > 0)) | @tsv' |
+			LC_ALL=C sort -u | awk -F'\t' '
+				{ key = $1 "\t" $2 "\t" $3; count[key]++
+				  if (!((key, $4) in seen)) { seen[key, $4] = 1; branches[key] = branches[key] " " $4 }
+				  families[key, $4] = families[key, $4] (families[key, $4] == "" ? "" : ", ") $5 }
+				END { for (key in count) {
+					n = split(substr(branches[key], 2), list, " "); text = ""
+					for (i = 1; i <= n; i++) text = text (i > 1 ? "; " : "") list[i] ": " families[key, list[i]]
+					print count[key] "\t" key "\t" text } }' |
+			LC_ALL=C sort -t$'\t' -k1,1nr -k2,3 | cut -f2-)" || armbian_kernels_list=""
+		# Start at another kernel in each period of git_every_hours, the runs that
+		# fetch, so that a budget smaller than the list still reaches every kernel.
+		declare count offset
+		count="$(grep -c . <<< "${armbian_kernels_list}" || true)"
+		if ((count > 0)); then
+			offset=$(($(date -u +%s) / (3600 * git_every_hours) % count))
+			armbian_kernels_list="$(tail -n +$((offset + 1)) <<< "${armbian_kernels_list}"; head -n "${offset}" <<< "${armbian_kernels_list}")"
+		fi
+	fi
+	[[ -n "${armbian_kernels_list}" ]]
+}
+
+# Per kernel, tab-separated: ok|wait|none (cannot be searched), "<source> <ref>",
+# reason, commit link, families by branch.
+declare -a armbian_results=()
+# Kernels already announced for the line being checked: "<source> <ref>" keys.
+declare -A armbian_done=()
+function armbian_result() {
+	declare IFS=$'\t'
+	armbian_results+=("$*")
+}
+
+# Set release_before to the release vX.Y of URL $1 before v$2, or empty if it
+# has no v$2 or v$2-rc1 tag; reads the tags once per URL.
+declare -A release_tags=()
+# Windows fetched in this run with their tags, by "<url> <X.Y>": "shallow" for a
+# history cut at the start, else the ref that marks the start.
+declare -A armbian_windows=()
+release_before=""
+function previous_release() {
+	declare url="${1}" listed
+	release_before=""
+	if [[ -z "${release_tags[${url}]+set}" ]]; then
+		listed="$(timeout --kill-after=5 60 git "${safe_git_options[@]}" ls-remote --tags --refs "${url}" 'v*' 2> /dev/null)" || return 1
+		release_tags[${url}]="$(awk '{ sub("refs/tags/", "", $2) } $2 ~ /^v[0-9]+\.[0-9]+(-rc1)?$/ { print $2 }' <<< "${listed}")"
+	fi
+	grep -qxE "v${2//./\\.}(-rc1)?" <<< "${release_tags[${url}]}" || return 0
+	release_before="$({
+		grep -vx -- '.*-rc1' <<< "${release_tags[${url}]}" || true
+		echo "v${2}"
+	} | sort -uV | awk -v want="v${2}" '$0 == want { print prev; exit } { prev = $0 }')"
+}
+
+# armbian:kernel contains "<text>": search each kernel Armbian builds from the
+# release before its X.Y on, so that the merge window of X.Y counts.
+function check_armbian_kernel() {
+	declare text="${1}" one url source spec kmm affected ref after rc found version
+	armbian_results=()
+	if [[ "${git_due}" != "yes" ]]; then
+		dep_state=skip dep_reason="armbian: not due in this run"
+		return
+	fi
+	if ! armbian_kernels; then
+		dep_state=wait dep_reason="armbian: cannot read ${armbian_map_url}"
+		return
+	fi
+	while IFS=$'\t' read -r source spec kmm affected; do
+		one="${source} ${spec}"
+		[[ -z "${armbian_done[${one}]:-}" ]] || continue
+		url="${git_mirrors[${source%.git}]:-${source}}"
+		case "${spec}" in
+			branch:*) ref="refs/heads/${spec#branch:}" ;;
+			tag:*) ref="refs/tags/${spec#tag:}" ;;
+			*) ref="" ;;
+		esac
+		if [[ -z "${ref}" || ! "${url}" =~ ${url_pattern} || ! "${ref}" =~ ${ref_pattern} || ! "${kmm}" =~ ^[0-9]+\.[0-9]+$ ]]; then
+			armbian_result none "${one}" "not a branch or tag"
+			continue
+		fi
+		if ! git_resolve "${url}" "${ref}"; then
+			armbian_result wait "${one}" "${url}: cannot read"
+			continue
+		fi
+		if [[ -z "${git_sha}" ]]; then
+			armbian_result none "${one}" "no ${spec#*:} in ${url}"
+			continue
+		fi
+		if ! previous_release "${url}" "${kmm}"; then
+			armbian_result wait "${one}" "${url}: cannot read"
+			continue
+		fi
+		after="${release_before}"
+		if [[ -z "${after}" ]]; then
+			armbian_result none "${one}" "no tags v${kmm} and the release before it in ${url}"
+			continue
+		fi
+		rc=0
+		# A tag vX.Y or vX.Y.Z came with a fetch of the same window: search it
+		# in place.
+		if [[ "${ref}" =~ ^refs/tags/v${kmm//./\\.}(\.[0-9]+)?$ && -n "${armbian_windows[${url} ${kmm}]:-}" ]] &&
+			git -C "${git_dirs[${url}]}" rev-parse -q --verify "${ref}^{commit}" > /dev/null; then
+			git_dir="${git_dirs[${url}]}" git_range="${ref}"
+			[[ "${armbian_windows[${url} ${kmm}]}" == "shallow" ]] || git_range="${armbian_windows[${url} ${kmm}]}..${ref}"
+		else
+			declare -a tag_refspecs=("+refs/tags/v${kmm}.*:refs/tags/v${kmm}.*")
+			if grep -qxF "v${kmm}" <<< "${release_tags[${url}]}"; then
+				tag_refspecs+=("+refs/tags/v${kmm}:refs/tags/v${kmm}")
+			fi
+			fetch_pool=armbian
+			git_fetch "${url}" "${ref}" "${after}" "${tag_refspecs[@]}" || rc=$?
+			fetch_pool=lines
+			if ((rc == 0)); then
+				armbian_windows[${url} ${kmm}]=shallow
+				[[ "${git_range}" != *..* ]] || armbian_windows[${url} ${kmm}]="${git_range%%..*}"
+			fi
+		fi
+		if ((rc != 0)); then
+			fetch_failed "${rc}" "${url}" "${ref}"
+			armbian_result wait "${one}" "${dep_reason}"
+			continue
+		fi
+		found="$(git -C "${git_dir}" log --no-merges -F --grep="${text}" --format=%H -1 "${git_range}" 2> /dev/null || true)"
+		[[ -n "${found}" ]] || found="$(git -C "${git_dir}" log -F --grep="${text}" --format=%H -1 "${git_range}" 2> /dev/null || true)"
+		if [[ -z "${found}" ]]; then
+			armbian_result wait "${one}" "not in ${spec#*:} after ${after}"
+			continue
+		fi
+		if [[ "${spec}" == tag:* ]]; then
+			version="${spec#tag:}"
+		else
+			version="$(git -C "${git_dir}" tag --contains "${found}" --sort=version:refname "v${kmm}" "v${kmm}.*" 2> /dev/null | head -n1)"
+		fi
+		dep_link=""
+		set_commit_link "${url}" "${found}"
+		armbian_result ok "${one}" "in ${version:-${spec#*:}, not tagged yet} as ${found:0:12}" "${dep_link}" "${affected}"
+	done <<< "${armbian_kernels_list}"
+	dep_state=ok dep_reason="armbian: ${#armbian_results[@]} kernels"
+}
+
 function check_condition() {
 	dep_state="" dep_reason="" dep_link=""
+	if [[ "${1}" =~ ^armbian: ]]; then
+		dep_state=bad dep_reason="armbian: expected 'armbian:kernel contains \"<text>\"' in a Notify-when line"
+		return
+	fi
 	if [[ "${1}" =~ ^[Gg][Ii][Tt][[:space:]]+([^[:space:]]+)[[:space:]]+contains[[:space:]]+\"([^\"]{1,200})\"[[:space:]]+in[[:space:]]+([^[:space:]]+)[[:space:]]+after[[:space:]]+([^[:space:]]+)$ ]]; then
 		declare url="${BASH_REMATCH[1]}" text="${BASH_REMATCH[2]}" container="${BASH_REMATCH[3]}" after="${BASH_REMATCH[4]}"
 		if [[ ! "${url}" =~ ${url_pattern} || ! "${container}" =~ ${ref_pattern} || ! "${after}" =~ ${ref_pattern} ]]; then
@@ -593,6 +766,61 @@ function evaluate_pull_request() {
 			continue
 		fi
 		current_line="Notify-when: ${one}"
+		if [[ "${one}" =~ ^armbian:kernel[[:space:]]+contains[[:space:]]+\"([^\"]{1,200})\"$ ]]; then
+			declare text="${BASH_REMATCH[1]}" result one_state one_kernel one_reason one_link one_affected one_hash
+			declare k_source k_spec
+			armbian_done=()
+			if [[ "${git_due}" == "yes" ]] && armbian_kernels; then
+				while IFS=$'\t' read -r k_source k_spec _; do
+					one_hash="$(line_hash "${one} ${k_source} ${k_spec}")"
+					if grep -qE "<!-- notify-when: ([0-9a-f]{12} )*${one_hash}( [0-9a-f]{12})* -->" <<< "${comments}"; then
+						armbian_done[${k_source} ${k_spec}]=1
+					fi
+				done <<< "${armbian_kernels_list}"
+			fi
+			check_armbian_kernel "${text}"
+			echo "#${number} Notify-when: ${dep_state}: ${dep_reason}" >&2
+			if [[ "${dep_state}" != "ok" ]]; then
+				pending=$((pending + 1))
+				continue
+			fi
+			# Each kernel is announced once, as Armbian moves to new kernels; the
+			# kernels found in one run share a comment, split if too long.
+			declare items="" hashes="" item one_branch
+			declare -a one_branches
+			for result in "${armbian_results[@]}"; do
+				IFS=$'\t' read -r one_state one_kernel one_reason one_link one_affected <<< "${result}"
+				echo "#${number}   ${one_kernel}: ${one_state}: ${one_reason}" >&2
+				one_hash="$(line_hash "${one} ${one_kernel}")"
+				grep -qE "<!-- notify-when: ([0-9a-f]{12} )*${one_hash}( [0-9a-f]{12})* -->" <<< "${comments}" && continue
+				case "${one_state}" in
+					ok)
+						dep_reason="${one_reason}" dep_link="${one_link}"
+						# The text comes from the description: as code, it cannot mention anyone.
+						item="- \`${text//\`/}\` $(linked_reason):"
+						IFS=';' read -r -a one_branches <<< "${one_affected}"
+						for one_branch in "${one_branches[@]}"; do
+							one_branch="${one_branch# }"
+							[[ "${one_branch}" == *": "[^[:space:]]* ]] || continue
+							((${#item} < 2000)) || break
+							item+=$'\n'"  - ${one_branch%%: *}:"$'\n'"    ${one_branch#*: }"
+						done
+						if ((${#items} + ${#item} + ${#hashes} > 3700)); then
+							new_comments+=("$(printf 'Notify-when met:\n%s\n<!-- notify-when: %s -->' "${items}" "${hashes}")")
+							items="" hashes=""
+						fi
+						# A blank line between the kernels keeps them apart when shown.
+						[[ -z "${items}" ]] || items+=$'\n'
+						items+="${item}"$'\n' hashes+="${hashes:+ }${one_hash}"
+						;;
+					wait) pending=$((pending + 1)) ;;
+				esac
+			done
+			if [[ -n "${items}" ]]; then
+				new_comments+=("$(printf 'Notify-when met:\n%s\n<!-- notify-when: %s -->' "${items}" "${hashes}")")
+			fi
+			continue
+		fi
 		check_condition "${one}"
 		echo "#${number} Notify-when: ${dep_state}: ${dep_reason}" >&2
 		case "${dep_state}" in
@@ -646,7 +874,7 @@ function is_known_comment() {
 			[[ "${lines[last]}" =~ ^\<!--\ depends-on:\ met\ [0-9a-f]{12}\ --\>$ ]] || return 1
 			;;
 		"Notify-when met:" | "Notify-when gave up after "[0-9]*" days:")
-			[[ "${lines[last]}" =~ ^\<!--\ notify-when:\ [0-9a-f]{12}\ --\>$ ]] || return 1
+			[[ "${lines[last]}" =~ ^\<!--\ notify-when:\ [0-9a-f]{12}(\ [0-9a-f]{12})*\ --\>$ ]] || return 1
 			;;
 		"This pull request asks to contact servers outside allowed-hosts:")
 			[[ "${lines[last]}" =~ ^\<!--\ depends-on:\ hosts\ [a-z0-9.\ -]+\ --\>$ ]] || return 1
@@ -657,7 +885,7 @@ function is_known_comment() {
 			;;
 	esac
 	for ((i = 1; i < last; i++)); do
-		[[ -z "${lines[i]}" || "${lines[i]}" == "- "* || (-n "${closing}" && "${lines[i]}" == "${closing}") ]] || return 1
+		[[ -z "${lines[i]}" || "${lines[i]}" == "- "* || "${lines[i]}" == "  - "* || "${lines[i]}" == "    "[^[:space:]]* || (-n "${closing}" && "${lines[i]}" == "${closing}") ]] || return 1
 	done
 }
 
