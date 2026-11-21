@@ -463,34 +463,46 @@ function check_git() {
 	fi
 }
 
-# Print the kernels Armbian builds, tab-separated: source, branch:/tag:/commit:,
-# major.minor, families by branch; downloads the map once per run.
-armbian_kernels_list="" armbian_kernels_tried=no
-function armbian_kernels() {
-	if [[ "${armbian_kernels_tried}" == "no" ]]; then
-		armbian_kernels_tried=yes
-		armbian_kernels_list="$(curl -fsSL --retry 2 --max-time 120 "${armbian_map_url}" |
-			jq -r '.[] | [.out.KERNELSOURCE, .out.KERNELBRANCH, .out.KERNEL_MAJOR_MINOR, .in.vars.BRANCH, .out.LINUXFAMILY]
-				| select(all(.[]; type == "string" and length > 0)) | @tsv' |
-			LC_ALL=C sort -u | awk -F'\t' '
-				{ key = $1 "\t" $2 "\t" $3; count[key]++
-				  if (!((key, $4) in seen)) { seen[key, $4] = 1; branches[key] = branches[key] " " $4 }
-				  families[key, $4] = families[key, $4] (families[key, $4] == "" ? "" : ", ") $5 }
-				END { for (key in count) {
-					n = split(substr(branches[key], 2), list, " "); text = ""
-					for (i = 1; i <= n; i++) text = text (i > 1 ? "; " : "") list[i] ": " families[key, list[i]]
-					print count[key] "\t" key "\t" text } }' |
-			LC_ALL=C sort -t$'\t' -k1,1nr -k2,3 | cut -f2-)" || armbian_kernels_list=""
-		# Start at another kernel in each period of git_every_hours, the runs that
-		# fetch, so that a budget smaller than the list still reaches every kernel.
-		declare count offset
-		count="$(grep -c . <<< "${armbian_kernels_list}" || true)"
-		if ((count > 0)); then
-			offset=$(($(date -u +%s) / (3600 * git_every_hours) % count))
-			armbian_kernels_list="$(tail -n +$((offset + 1)) <<< "${armbian_kernels_list}"; head -n "${offset}" <<< "${armbian_kernels_list}")"
-		fi
+# The map as rows: source, branch:/tag:/commit:, major.minor, Armbian branch,
+# family, board. Downloaded once per run; returns 1 if it cannot be.
+armbian_rows="" armbian_rows_tried=no
+function armbian_map() {
+	if [[ "${armbian_rows_tried}" == "no" ]]; then
+		armbian_rows_tried=yes
+		armbian_rows="$(curl -fsSL --retry 2 --max-time 120 "${armbian_map_url}" |
+			jq -r '.[] | [.out.KERNELSOURCE, .out.KERNELBRANCH, .out.KERNEL_MAJOR_MINOR, .in.vars.BRANCH, .out.LINUXFAMILY, .in.vars.BOARD]
+				| select(all(.[]; type == "string" and length > 0)) | @tsv' | LC_ALL=C sort -u)" || armbian_rows=""
 	fi
-	[[ -n "${armbian_kernels_list}" ]]
+	[[ -n "${armbian_rows}" ]]
+}
+
+# Set armbian_kernels_list to the kernels of boards $1 and families $2 (comma
+# lists, none for all): source, ref, major.minor, and the boards named or else
+# the families that build each, by branch.
+armbian_kernels_list=""
+function armbian_kernels() {
+	armbian_kernels_list=""
+	armbian_map || return 1
+	armbian_kernels_list="$(awk -F'\t' -v boards=",${1}," -v families=",${2}," '
+		boards != ",," || families != ",," {
+			if (index(boards, "," $6 ",") == 0 && index(families, "," $5 ",") == 0) next }
+		{ key = $1 "\t" $2 "\t" $3; name = (boards != ",," ? $6 : $5); count[key]++
+		  if (!((key, $4) in seen)) { seen[key, $4] = 1; branches[key] = branches[key] " " $4 }
+		  if (!((key, $4, name) in named)) { named[key, $4, name] = 1
+		    names[key, $4] = names[key, $4] (names[key, $4] == "" ? "" : ", ") name } }
+		END { for (key in count) {
+			n = split(substr(branches[key], 2), list, " "); text = ""
+			for (i = 1; i <= n; i++) text = text (i > 1 ? "; " : "") list[i] ": " names[key, list[i]]
+			print count[key] "\t" key "\t" text } }' <<< "${armbian_rows}" |
+		LC_ALL=C sort -t$'\t' -k1,1nr -k2,3 | cut -f2-)"
+	# Start at another kernel in each period of git_every_hours, the runs that
+	# fetch, so that a budget smaller than the list still reaches every kernel.
+	declare count offset
+	count="$(grep -c . <<< "${armbian_kernels_list}" || true)"
+	if ((count > 0)); then
+		offset=$(($(date -u +%s) / (3600 * git_every_hours) % count))
+		armbian_kernels_list="$(tail -n +$((offset + 1)) <<< "${armbian_kernels_list}"; head -n "${offset}" <<< "${armbian_kernels_list}")"
+	fi
 }
 
 # Per kernel, tab-separated: ok|wait|none (cannot be searched), "<source> <ref>",
@@ -524,8 +536,9 @@ function previous_release() {
 	} | sort -uV | awk -v want="v${2}" '$0 == want { print prev; exit } { prev = $0 }')"
 }
 
-# armbian:kernel contains "<text>": search each kernel Armbian builds from the
-# release before its X.Y on, so that the merge window of X.Y counts.
+# armbian:kernel [board:] [family:] contains "<text>": search the kernels of
+# armbian_kernels from the release before their X.Y on, so that the merge
+# window of X.Y counts. <text> <boards> <families>
 function check_armbian_kernel() {
 	declare text="${1}" one url source spec kmm affected ref after rc found version
 	armbian_results=()
@@ -533,8 +546,12 @@ function check_armbian_kernel() {
 		dep_state=skip dep_reason="armbian: not due in this run"
 		return
 	fi
-	if ! armbian_kernels; then
+	if ! armbian_kernels "${2}" "${3}"; then
 		dep_state=wait dep_reason="armbian: cannot read ${armbian_map_url}"
+		return
+	fi
+	if [[ -z "${armbian_kernels_list}" ]]; then
+		dep_state=bad dep_reason="armbian: no kernel for board:${2} family:${3}"
 		return
 	fi
 	while IFS=$'\t' read -r source spec kmm affected; do
@@ -613,7 +630,7 @@ function check_armbian_kernel() {
 function check_condition() {
 	dep_state="" dep_reason="" dep_link=""
 	if [[ "${1}" =~ ^armbian: ]]; then
-		dep_state=bad dep_reason="armbian: expected 'armbian:kernel contains \"<text>\"' in a Notify-when line"
+		dep_state=bad dep_reason="armbian: expected 'armbian:kernel [board:<a,b>] [family:<x,y>] contains \"<text>\"' in a Notify-when line"
 		return
 	fi
 	if [[ "${1}" =~ ^[Gg][Ii][Tt][[:space:]]+([^[:space:]]+)[[:space:]]+contains[[:space:]]+\"([^\"]{1,200})\"[[:space:]]+in[[:space:]]+([^[:space:]]+)[[:space:]]+after[[:space:]]+([^[:space:]]+)$ ]]; then
@@ -766,11 +783,18 @@ function evaluate_pull_request() {
 			continue
 		fi
 		current_line="Notify-when: ${one}"
-		if [[ "${one}" =~ ^armbian:kernel[[:space:]]+contains[[:space:]]+\"([^\"]{1,200})\"$ ]]; then
-			declare text="${BASH_REMATCH[1]}" result one_state one_kernel one_reason one_link one_affected one_hash
+		if [[ "${one}" =~ ^armbian:kernel(([[:space:]]+(board|family):[A-Za-z0-9._-]+(,[A-Za-z0-9._-]+)*)*)[[:space:]]+contains[[:space:]]+\"([^\"]{1,200})\"$ ]]; then
+			declare text="${BASH_REMATCH[5]}" scope="${BASH_REMATCH[1]}" boards="" families="" word
+			declare result one_state one_kernel one_reason one_link one_affected one_hash
 			declare k_source k_spec
+			for word in ${scope}; do
+				case "${word}" in
+					board:*) boards+="${boards:+,}${word#board:}" ;;
+					family:*) families+="${families:+,}${word#family:}" ;;
+				esac
+			done
 			armbian_done=()
-			if [[ "${git_due}" == "yes" ]] && armbian_kernels; then
+			if [[ "${git_due}" == "yes" ]] && armbian_kernels "${boards}" "${families}"; then
 				while IFS=$'\t' read -r k_source k_spec _; do
 					one_hash="$(line_hash "${one} ${k_source} ${k_spec}")"
 					if grep -qE "<!-- notify-when: ([0-9a-f]{12} )*${one_hash}( [0-9a-f]{12})* -->" <<< "${comments}"; then
@@ -778,7 +802,7 @@ function evaluate_pull_request() {
 					fi
 				done <<< "${armbian_kernels_list}"
 			fi
-			check_armbian_kernel "${text}"
+			check_armbian_kernel "${text}" "${boards}" "${families}"
 			echo "#${number} Notify-when: ${dep_state}: ${dep_reason}" >&2
 			if [[ "${dep_state}" != "ok" ]]; then
 				pending=$((pending + 1))
@@ -786,7 +810,7 @@ function evaluate_pull_request() {
 			fi
 			# Each kernel is announced once, as Armbian moves to new kernels; the
 			# kernels found in one run share a comment, split if too long.
-			declare items="" hashes="" item one_branch
+			declare items="" hashes="" item one_branch one_names
 			declare -a one_branches
 			for result in "${armbian_results[@]}"; do
 				IFS=$'\t' read -r one_state one_kernel one_reason one_link one_affected <<< "${result}"
@@ -803,7 +827,14 @@ function evaluate_pull_request() {
 							one_branch="${one_branch# }"
 							[[ "${one_branch}" == *": "[^[:space:]]* ]] || continue
 							((${#item} < 2000)) || break
-							item+=$'\n'"  - ${one_branch%%: *}:"$'\n'"    ${one_branch#*: }"
+							one_names="${one_branch#*: }"
+							# A comment holds 4000 characters: cut a long list at a name.
+							if ((${#one_names} > 1000)); then
+								one_names="${one_names:0:1000}"
+								one_names="${one_names%, *}"
+								one_names+=", +$(($(tr -cd , <<< "${one_branch#*: }" | wc -c) - $(tr -cd , <<< "${one_names}" | wc -c))) more"
+							fi
+							item+=$'\n'"  - ${one_branch%%: *}:"$'\n'"    ${one_names}"
 						done
 						if ((${#items} + ${#item} + ${#hashes} > 3700)); then
 							new_comments+=("$(printf 'Notify-when met:\n%s\n<!-- notify-when: %s -->' "${items}" "${hashes}")")

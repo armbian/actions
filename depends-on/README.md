@@ -42,14 +42,15 @@ characters without `"`.
 
 ### Kernels Armbian builds
 
-`Notify-when: armbian:kernel contains "<text>"` searches every kernel Armbian
-builds, as listed in `armbian-map` (the daily `image-info.json` of
-armbian.github.io): for each kernel source and branch or tag of version
+`Notify-when: armbian:kernel [board:<a,b>] [family:<x,y>] contains "<text>"`
+searches the kernels Armbian builds for those boards and families, or every
+kernel without them, as listed in `armbian-map` (the daily `image-info.json`
+of armbian.github.io): for each kernel source and branch or tag of version
 X.Y, the commit messages after the release before X.Y, so that the merge
 window of X.Y counts. Each kernel where `<text>` turns up is announced once,
 with the first tag of X.Y that has the commit (for a kernel pinned to a tag,
-that tag) and the families that build that kernel, by branch; the kernels
-found in one run share a comment:
+that tag) and the boards named, or the families, that build that kernel, by
+branch; the kernels found in one run share a comment:
 
 ```
 Notify-when met:
@@ -73,7 +74,7 @@ commit, missing branches, and sources without the tag `vX.Y` (or
 have the commit. These lines fetch within `armbian-max-fetches`, apart from
 the other lines; a kernel already announced costs no fetch, and each period
 of `git-every-hours` starts at another kernel of the list, so that a smaller
-budget still reaches them all. The form works in `Notify-when:` lines only.
+budget still reaches them all. A long list of boards is cut in the comment. The form works in `Notify-when:` lines only.
 
 `git-mirrors` names where to fetch a source from instead, one
 `<url> <mirror url>` per line; by default git.kernel.org stable and
