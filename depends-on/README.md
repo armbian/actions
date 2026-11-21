@@ -40,6 +40,46 @@ Notify-when: git https://github.com/torvalds/linux.git contains "20261005-kexec-
 Only `https://` URLs and plain ref names are accepted; `<text>` is up to 200
 characters without `"`.
 
+### Kernels Armbian builds
+
+`Notify-when: armbian:kernel contains "<text>"` searches every kernel Armbian
+builds, as listed in `armbian-map` (the daily `image-info.json` of
+armbian.github.io): for each kernel source and branch or tag of version
+X.Y, the commit messages after the release before X.Y, so that the merge
+window of X.Y counts. Each kernel where `<text>` turns up is announced once,
+with the first tag of X.Y that has the commit (for a kernel pinned to a tag,
+that tag) and the families that build that kernel, by branch; the kernels
+found in one run share a comment:
+
+```
+Notify-when met:
+- `rtc: pcf8563: pass the driver data to the alarm interrupt handler` in v7.3.4 as f711f8f5af0b:
+  - edge:
+    meson64, rockchip64, sunxi64
+
+- `rtc: pcf8563: pass the driver data to the alarm interrupt handler` in v6.18.63 as 5cc7fddfce17:
+  - cloud:
+    x86
+  - current:
+    meson64, rockchip64, sunxi64
+```
+
+So a patch copied into Armbian is announced when a stable release picks it
+up, and again when Armbian moves a branch to a kernel that has it. A kernel
+is its source and branch or tag: when Armbian moves a pinned tag, say from
+v7.3.1 to v7.3.4, the new tag is announced as well. Kernels pinned to a
+commit, missing branches, and sources without the tag `vX.Y` (or
+`vX.Y-rc1`) and the release tag before it are not searched. The `notify-pending` label stays while a searched kernel does not
+have the commit. These lines fetch within `armbian-max-fetches`, apart from
+the other lines; a kernel already announced costs no fetch, and each period
+of `git-every-hours` starts at another kernel of the list, so that a smaller
+budget still reaches them all. The form works in `Notify-when:` lines only.
+
+`git-mirrors` names where to fetch a source from instead, one
+`<url> <mirror url>` per line; by default git.kernel.org stable and
+mainline are fetched from their GitHub mirrors, as git.kernel.org cannot
+leave out files.
+
 ## Status and comments
 
 For `Depends-on:` the status is `success` when every line is met, `pending`
@@ -173,10 +213,13 @@ access.
 | `commit-links` | | extra commit page templates |
 | `allowed-hosts` | | more servers allowed without asking, or `*` |
 | `allow-hosts-label` | `depends-on: allow hosts` | label that approves the servers asked for |
+| `git-mirrors` | | more `<url> <mirror url>` lines |
+| `armbian-map` | armbian.github.io `image-info.json` | kernels Armbian builds, for `armbian:kernel` |
 | `notify-label` | `notify-pending` | label of pull requests with lines not announced |
 | `notify-ttl-days` | `365` | days after the merge to keep watching |
 | `git-every-hours` | `6` | how often scheduled runs fetch commits |
 | `git-max-fetches` | `10` | fetches per run |
+| `armbian-max-fetches` | `20` | fetches per run for `armbian:kernel` lines, apart from `git-max-fetches` |
 | `git-fetch-timeout` | `300` | seconds per fetch |
 | `max-lines` | `20` | most lines per pull request |
 
@@ -192,5 +235,8 @@ has one of the fixed shapes. Never feed it a `result` from an untrusted run.
 
 git follows a redirect from an allowed host to any other server, as moved
 repositories need; put in `allowed-hosts` only servers you trust with that.
+
+For `armbian:kernel` the sources come from `armbian-map`, not from the
+description, and are fetched without asking about their hosts.
 
 The default token reads only its own repository and public ones.
