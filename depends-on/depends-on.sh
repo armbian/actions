@@ -113,7 +113,7 @@ if [[ "${GITHUB_EVENT_NAME:-}" == "schedule" ]]; then
 fi
 
 # What Armbian builds, per board and branch, with the kernel source of each.
-armbian_map_url="${DEPENDS_ON_ARMBIAN_MAP_URL:-https://raw.githubusercontent.com/armbian/armbian.github.io/data/data/image-info.json}"
+armbian_map_url="${DEPENDS_ON_ARMBIAN_MAP_URL:-https://github.armbian.com/image-info.json}"
 
 # Fetch these repositories from a mirror: some servers cannot leave out
 # trees or cut history. "<url> <mirror url>" per line in DEPENDS_ON_GIT_MIRRORS.
