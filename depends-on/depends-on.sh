@@ -926,7 +926,7 @@ function is_known_comment() {
 # commit of an open pull request it names, post a comment of a fixed shape,
 # add or remove the notify label, and remove the allow label.
 function apply_decisions() {
-	declare item number sha state description label head one
+	declare item number sha state description label head statuses current one failed=""
 	while IFS= read -r item; do
 		number="$(jq -r '.number' <<< "${item}")"
 		sha="$(jq -r '.sha' <<< "${item}")"
@@ -940,8 +940,19 @@ function apply_decisions() {
 		if [[ -n "${state}" ]]; then
 			head="$(gh api "repos/${repo}/pulls/${number}" --jq 'select(.state == "open") | .head.sha' 2> /dev/null || true)"
 			if [[ "${head}" == "${sha}" ]]; then
-				gh api -X POST "repos/${repo}/statuses/${sha}" -f state="${state}" -f context="${context}" \
-					-f description="${description:0:140}" -f target_url="${run_url}" > /dev/null
+				# GitHub keeps at most 1000 statuses per commit and context; post only a change.
+				if ! statuses="$(gh api --paginate "repos/${repo}/commits/${sha}/status?per_page=100" 2> /dev/null)" ||
+					! current="$(jq -r --arg c "${context}" '.statuses[] | select(.context == $c) | "\(.state)\t\(.description)"' <<< "${statuses}")"; then
+					echo "Could not read the status of #${number} ${sha:0:12}" >&2
+					failed=yes
+					state="not read"
+				elif [[ "${current}" == "${state}"$'\t'"${description:0:140}" ]]; then
+					state=""
+				elif ! gh api -X POST "repos/${repo}/statuses/${sha}" -f state="${state}" -f context="${context}" \
+					-f description="${description:0:140}" -f target_url="${run_url}" > /dev/null; then
+					echo "Could not set the status on #${number} ${sha:0:12}" >&2
+					failed=yes
+				fi
 			else
 				echo "Not setting a status on #${number}: ${sha:0:12} is not the head of an open pull request (now ${head:-none})" >&2
 			fi
@@ -962,6 +973,7 @@ function apply_decisions() {
 		fi
 		echo "#${number} ${sha:0:12} ${state:-unchanged} label=${label:-none}"
 	done < <(jq -c '.[]' <<< "${1}")
+	[[ -z "${failed}" ]]
 }
 
 function pull_requests_to_check() {
