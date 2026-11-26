@@ -121,7 +121,7 @@ declare -A git_mirrors=()
 while read -r one_host one_template; do
 	[[ -n "${one_host}" && -n "${one_template}" ]] && git_mirrors[${one_host%.git}]="${one_template}"
 done <<- MIRRORS
-	https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git https://github.com/gregkh/linux.git
+	https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git https://github.com/armbian/linux.git
 	https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git https://github.com/torvalds/linux.git
 	${DEPENDS_ON_GIT_MIRRORS:-}
 MIRRORS

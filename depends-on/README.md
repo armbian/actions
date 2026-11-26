@@ -78,8 +78,8 @@ budget still reaches them all. A long list of boards is cut in the comment. The 
 
 `git-mirrors` names where to fetch a source from instead, one
 `<url> <mirror url>` per line; by default git.kernel.org stable and
-mainline are fetched from their GitHub mirrors, as git.kernel.org cannot
-leave out files.
+mainline are fetched from armbian/linux and torvalds/linux on GitHub, as
+git.kernel.org cannot leave out files.
 
 ## Status and comments
 
